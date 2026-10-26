@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>JHA Digital — Prototype</title>
+<style>
+  :root{
+    --navy:#12233A; --navy-light:#2A3F5F; --steel:#4A6FA5; --steel-light:#9FB0C8;
+    --orange:#E8720C; --orange-light:#F6D9BC; --cardbg:#EEF1F5; --muted:#5B6472;
+    --white:#FFFFFF; --border:#D6DBE3;
+    --danger-bg:#F6DCD3; --danger-fg:#8A2E1E; --success-bg:#D8EFE0; --success-fg:#1F6D3E;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#F7F8FA;color:var(--navy);-webkit-tap-highlight-color:transparent;}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  .topbar{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .brand{font-family:Georgia,serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .brand .tag{font-family:-apple-system,sans-serif;font-size:11px;font-weight:600;background:var(--orange);color:#fff;padding:3px 8px;border-radius:20px;letter-spacing:.02em;}
+  .meta{font-size:13px;color:var(--steel-light);}
+  .ghost-btn{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;padding:7px 14px;border-radius:8px;font-size:13px;}
+  .ghost-btn:hover{background:rgba(255,255,255,.08);}
+  .tabbar{display:flex;background:#fff;border-bottom:1px solid var(--border);}
+  .tab{flex:1;max-width:220px;background:none;border:none;padding:14px 10px;font-size:15px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;}
+  .tab.active{color:var(--navy);border-bottom-color:var(--orange);}
+  main{max-width:1180px;margin:0 auto;padding:22px 20px 60px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+  .col-main{flex:1 1 620px;min-width:320px;}
+  .col-side{flex:1 1 320px;min-width:280px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .card h3{font-size:15px;margin-bottom:10px;}
+  .label{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+  .status-pill{display:inline-block;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-draft{background:var(--orange-light);color:#8a4a0c;}
+  .status-approved{background:var(--success-bg);color:var(--success-fg);}
+  .wms-row{display:flex;align-items:center;gap:12px;background:var(--cardbg);border-radius:8px;padding:10px 14px;cursor:pointer;border:none;width:100%;text-align:left;}
+  .wms-badge{background:var(--navy);color:#fff;font-weight:700;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .wms-row .wtext{flex:1;font-size:13px;}
+  .wms-row .wlink{color:var(--steel);font-size:13px;font-weight:700;white-space:nowrap;}
+  table.steps{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+  table.steps th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-size:12px;}
+  table.steps td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.steps tr:nth-child(even) td{background:#FAFBFC;}
+  .empty-note{color:var(--muted);font-style:italic;font-size:13px;padding:14px 0;}
+  .btn{border:none;border-radius:8px;padding:10px 16px;font-size:13.5px;font-weight:600;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-outline{background:#fff;border:1px solid var(--border);color:var(--navy);}
+  .btn-accent{background:#fff;border:1.5px solid var(--orange);color:var(--orange);}
+  .btn-accent.recording{background:var(--orange);color:#fff;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip{border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12.5px;background:#fff;color:var(--muted);}
+  .chip.on{background:var(--danger-bg);color:var(--danger-fg);border-color:var(--danger-bg);font-weight:600;}
+  .chip.mandatory{background:var(--cardbg);color:var(--navy);font-weight:600;cursor:default;}
+  .chip.req{background:var(--orange-light);color:#8a4a0c;border-color:var(--orange-light);font-weight:600;cursor:default;}
+  .equip-row{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
+  .equip-row-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .equip-name{font-size:13.5px;font-weight:600;color:var(--navy);}
+  .remove-btn{background:none;border:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer;padding:2px 6px;}
+  .remove-btn:hover{color:#B3261E;}
+  .permit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .permit-type{flex:0 0 130px;font-size:12.5px;color:var(--navy);font-weight:600;}
+  .permit-row input[type=text]{flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;}
+  .ppe-sub-label{font-size:11px;color:var(--muted);font-weight:600;}
+  .field-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;}
+  .field-row input[type=text]{flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;}
+  .select-field{flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff;color:var(--navy);}
+  .badge-toggle{border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11.5px;font-weight:700;background:#fff;color:var(--muted);white-space:nowrap;}
+  .badge-toggle.on{background:var(--success-bg);color:var(--success-fg);border-color:var(--success-bg);}
+  .capture{margin-top:14px;border:1.5px dashed var(--border);border-radius:10px;padding:16px;background:#FAFBFC;}
+  .capture .mic-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .transcript{margin-top:10px;font-size:13px;color:var(--navy);background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:20px;white-space:pre-wrap;}
+  .transcript.placeholder{color:var(--muted);font-style:italic;}
+  textarea.type-fallback{width:100%;margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-family:inherit;min-height:70px;}
+  .draft-card{margin-top:14px;border:1.5px solid var(--orange);border-radius:10px;padding:14px 16px;background:#fff;}
+  .draft-card .draft-label{font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.02em;margin-bottom:8px;}
+  .draft-field{margin-bottom:8px;}
+  .draft-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;}
+  .draft-field input,.draft-field textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit;}
+  .link-btn{background:none;border:none;color:var(--steel);font-size:12.5px;font-weight:600;padding:0;text-decoration:underline;}
+  .status-line{font-size:12.5px;color:var(--muted);margin-top:8px;min-height:16px;}
+  .status-line.error{color:#B3261E;}
+  .status-line.warn{color:#8a4a0c;}
+  .timeline-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start;}
+  .timeline-time{font-weight:700;font-size:13px;width:70px;flex-shrink:0;}
+  .timeline-body{flex:1;}
+  .timeline-body .summary{font-size:13.5px;}
+  .timeline-body .sub{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:4px;}
+  .tag-pill{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;color:#fff;white-space:nowrap;}
+  .banner{display:flex;align-items:center;gap:10px;background:var(--orange-light);border:1px solid var(--orange);color:#8a4a0c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;}
+  .crew-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+  .crew-name{font-size:14px;}
+  .sign-status{font-size:12px;font-weight:700;}
+  .sign-status.signed{color:var(--success-fg);}
+  .sign-status.pending{color:var(--muted);}
+  .sig-modal-backdrop{position:fixed;inset:0;background:rgba(18,35,58,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .sig-modal-backdrop.open{display:flex;}
+  .sig-modal{background:#fff;border-radius:12px;padding:20px;max-width:420px;width:100%;}
+  .sig-modal h3{font-size:16px;margin-bottom:6px;}
+  .sig-modal p{font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.4;}
+  canvas#sigPad{border:1.5px dashed var(--border);border-radius:8px;width:100%;height:160px;touch-action:none;background:#fff;}
+  .sig-modal .btnrow{display:flex;gap:10px;margin-top:14px;}
+  .sig-modal .btnrow .btn{flex:1;}
+  .footer-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:30px;}
+  .step-head td{background:#E4E9F1;font-weight:700;color:var(--navy);font-size:13px;}
+  table.steps td.gap{color:#B35A00;font-style:italic;}
+  .draft-step{border-top:1px solid var(--border);padding-top:10px;margin-top:10px;}
+  .pair-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;}
+  .pair-cell{flex:1 1 0;min-width:0;}
+  .pair-cell.narrow{flex:0 0 22%;}
+  .pair-cell label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;}
+  .pair-cell textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12.5px;font-family:inherit;resize:vertical;}
+  .pair-row .remove-btn{margin-top:18px;}
+  .banner.info{background:#E8EEF6;border-color:var(--steel);color:var(--navy);}
+  .fine-print{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.4;}
+  .edit-list{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.5;}
+  .step-edit{display:flex;gap:8px;align-items:center;}
+  .step-edit input{flex:1;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;font-family:inherit;}
+  table.steps textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:12.5px;font-family:inherit;resize:vertical;}
+  table.steps textarea.gap{color:#B35A00;font-style:italic;}
+  table.steps tr.add-row td{border-bottom:none;padding-top:2px;}
+  .chip:disabled{cursor:default;}
+  .chip:disabled:not(.on){opacity:.55;}
+  .tab.settings-tab{margin-left:auto;max-width:140px;color:var(--steel);}
+  .cfg-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  table.cfg input[type=text]{width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:12.5px;font-family:inherit;}
+  table.cfg select{width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 4px;font-size:12.5px;font-family:inherit;background:#fff;}
+  table.cfg tr.superseded td{opacity:.6;}
+  .cfg-add{display:grid;grid-template-columns:1fr 2fr 70px auto;gap:8px;margin-top:12px;}
+  .cfg-add input{border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:13px;font-family:inherit;min-width:0;}
+  details summary{cursor:pointer;}
+  @media (max-width:760px){.cfg-add{grid-template-columns:1fr 1fr;}}
+  .banner.err{background:#FBE4E1;border-color:#B3261E;color:#7a1a14;}
+  .sig-input{width:100%;border:1px solid var(--border);border-radius:6px;padding:9px 10px;font-size:14px;margin-bottom:8px;font-family:inherit;}
+  .jha-item{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+  .jha-item:hover,.jha-item:focus{border-color:var(--steel);outline:none;}
+  .jha-item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .jha-item-top strong{font-size:15.5px;color:var(--navy);}
+  .jha-item-sub{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .jha-item-foot{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:12px;flex-wrap:wrap;}
+  .jha-item-foot .ok{color:var(--success-fg);font-weight:600;}
+  .jha-item-foot .warn{color:#B35A00;font-weight:700;}
+  .jha-item-foot .soon{color:#B35A00;}
+  .rev-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--cardbg);color:var(--navy);white-space:nowrap;}
+  .rev-pill.hot{background:var(--orange-light);color:#8a4a0c;}
+  .chip.area{display:inline-flex;align-items:center;gap:6px;background:var(--cardbg);color:var(--navy);border-color:var(--border);font-weight:600;cursor:default;}
+  .chip-x{background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px;}
+  .chip-x:hover{color:#B3261E;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">JHA Digital <span class="tag" id="modeTag">Prototype</span></div>
+  <div class="meta" id="topbarMeta">Active JHAs</div>
+  <button class="ghost-btn" id="homeBtn" style="display:none;">← All JHAs</button>
+</div>
+<div id="notice" class="banner" style="display:none;margin:0;border-radius:0;border-width:0 0 1px 0;"></div>
+
+<nav class="tabbar" style="display:none;">
+  <button class="tab active" data-tab="task">Task Card</button>
+  <button class="tab" data-tab="changelog">Change Log</button>
+  <button class="tab" data-tab="signon">Sign-on</button>
+</nav>
+
+<main>
+
+  <!-- LANDING -->
+  <section id="landing" class="panel active">
+    <div id="landingDemoNote" class="banner info" style="display:none;margin-bottom:14px;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+      <h2 style="font-size:20px;" id="landingHeading">Active JHAs</h2>
+      <button class="btn btn-primary" id="newJhaBtn">+ Create new JHA</button>
+    </div>
+    <div class="fine-print" id="landingSub" style="margin:0 0 10px;"></div>
+    <div class="field-row" id="landingAreaRow" style="display:none;margin-bottom:14px;">
+      <label for="landingArea" style="font-size:13px;font-weight:700;white-space:nowrap;">Area</label>
+      <select id="landingArea" class="select-field"></select>
+    </div>
+    <div id="landingList"></div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:10px;">
+      <button class="link-btn" id="landingRefresh">Refresh</button>
+    </div>
+    <div style="margin-top:40px;display:flex;gap:18px;flex-wrap:wrap;">
+      <button class="link-btn" id="openSettingsBtn">Admin settings</button>
+      <button class="link-btn" id="clearDemoBtn" style="display:none;">Clear demo data</button>
+    </div>
+  </section>
+
+  <!-- TASK CARD -->
+  <section id="task" class="panel">
+    <div class="row">
+      <div class="col-main">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <h2 style="font-size:19px;" id="cardTitleHeading">Untitled work activity</h2>
+            <span class="status-pill status-draft" id="cardStatusPill">Needs review</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted);font-style:italic;margin-top:2px;" id="cardTitleNote">Record the first step below to set this from the briefing</div>
+          <div class="banner info" id="lockNote" style="display:none;margin-top:12px;"></div>
+
+          <div class="label" style="margin-top:14px;">Areas <span style="font-weight:400;color:var(--muted);">— add every area this task covers</span></div>
+          <div class="tags" id="areaChips"></div>
+          <div class="field-row" id="areaAddRow" style="margin-top:8px;">
+            <select id="locationSelect" class="select-field"></select>
+          </div>
+
+          <div class="field-row" style="margin-top:8px;align-items:stretch;">
+            <select id="wmsSelect" class="select-field" style="flex:1;">
+              <option value="">— Select SWMS —</option>
+            </select>
+          </div>
+
+          <div class="label" style="margin-top:18px;">Steps</div>
+          <table class="steps" id="stepsTable">
+            <thead><tr><th style="width:9%;">Ref</th><th style="width:40%;">Hazard</th><th style="width:46%;">Control (for that hazard)</th><th style="width:5%;"></th></tr></thead>
+            <tbody id="stepsBody"></tbody>
+          </table>
+          <div class="empty-note" id="stepsEmptyNote">No steps captured yet — record the first one below.</div>
+
+          <div style="margin-top:14px;">
+            <button class="btn btn-accent" id="openStepCapture">🎙 Record a step</button>
+          </div>
+
+          <div class="capture" id="stepCapture" style="display:none;">
+            <div class="mic-row">
+              <button class="btn btn-accent" id="stepMicBtn">🎙 Start recording</button>
+              <button class="link-btn" id="stepTypeToggle">or type it instead</button>
+            </div>
+            <div class="transcript placeholder" id="stepTranscript">Transcript will appear here as you speak…</div>
+            <textarea class="type-fallback" id="stepTypeArea" style="display:none;" placeholder="Type the step briefing here, e.g. &quot;Step one, removing the barrier panels, main hazard is working at height and dropped objects, control is harness clipped on and an exclusion zone below the span.&quot;"></textarea>
+            <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="stepStructureBtn" disabled>Structure this step</button>
+              <button class="link-btn" id="stepCancelBtn">Cancel</button>
+            </div>
+            <div class="status-line" id="stepStatusLine"></div>
+            <div id="stepDraftHolder"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-side">
+        <div class="card">
+          <div class="label">PPE required</div>
+          <div class="ppe-sub-label">Mandatory — site-wide</div>
+          <div class="tags" id="ppeMandatory"></div>
+          <div class="ppe-sub-label" style="margin-top:12px;">Task-specific — tap to toggle</div>
+          <div class="tags" id="ppeTags"></div>
+        </div>
+        <div class="card">
+          <div class="label">Equipment</div>
+          <div id="equipmentList"></div>
+          <div class="field-row" id="equipmentAddRow" style="margin-top:10px;">
+            <select id="equipmentAddSelect" class="select-field">
+              <option>EWP (boom lift)</option>
+              <option>EWP (scissor lift)</option>
+              <option>Mobile crane</option>
+              <option>Scaffold</option>
+              <option>Forklift</option>
+              <option>Excavator</option>
+              <option>Chainsaw</option>
+              <option>Hand tools</option>
+            </select>
+            <button class="btn btn-outline" id="equipmentAddBtn">+ Add</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Permits</div>
+          <div id="permitsList"></div>
+          <div class="field-row" id="permitAddRow" style="margin-top:10px;">
+            <select id="permitAddSelect" class="select-field">
+              <option>Permit to Work</option>
+              <option>Confined Space</option>
+              <option>Hot Works</option>
+              <option>Working at Heights</option>
+              <option>Traffic</option>
+              <option>Lift Plan</option>
+              <option>Permit to Excavate</option>
+              <option>Permit to Work Near Services</option>
+              <option>Other</option>
+            </select>
+            <button class="btn btn-outline" id="permitAddBtn">+ Add</button>
+          </div>
+        </div>
+        <div class="card" id="actionCard"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHANGE LOG -->
+  <section id="changelog" class="panel">
+    <div class="card">
+      <h3 style="margin-bottom:14px;" id="changeLogHeading">Untitled work activity — change history</h3>
+      <div id="amendBanner" class="banner" style="display:none;"></div>
+      <div id="timelineHolder"></div>
+      <button class="btn btn-accent" id="openChangeCapture">🎙 Record a change</button>
+      <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:8px;">Any crew member can add an entry — not supervisor-only.</div>
+
+      <div class="capture" id="changeCapture" style="display:none;">
+        <div class="mic-row">
+          <button class="btn btn-accent" id="changeMicBtn">🎙 Start recording</button>
+          <button class="link-btn" id="changeTypeToggle">or type it instead</button>
+        </div>
+        <div class="transcript placeholder" id="changeTranscript">Transcript will appear here as you speak…</div>
+        <textarea class="type-fallback" id="changeTypeArea" style="display:none;" placeholder="Type the change here, e.g. &quot;We've hit unexpected reinforcement in the slab, changing to hand-breaking method.&quot;"></textarea>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="changeStructureBtn" disabled>Classify this change</button>
+          <button class="link-btn" id="changeCancelBtn">Cancel</button>
+        </div>
+        <div class="status-line" id="changeStatusLine"></div>
+        <div id="changeDraftHolder"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGN ON -->
+  <section id="signon" class="panel">
+    <div class="card">
+      <div id="resignBanner" class="banner" style="display:none;"></div>
+      <h3 id="signonHeading">Untitled work activity — sign-on</h3>
+      <div style="font-size:12.5px;color:var(--muted);font-style:italic;margin:6px 0 14px;" id="signonWmsNote">Signing confirms you have reviewed the selected SWMS and this JHA</div>
+      <button class="btn btn-primary" id="signOnBtn" style="margin-bottom:10px;">Sign on to this JHA</button>
+      <div class="fine-print" id="signonMsg" style="margin:0 0 12px;"></div>
+      <div id="crewHolder"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:6px;" id="signCountLine"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="panel">
+    <div class="banner info" style="margin-bottom:16px;">Admin settings for <strong>this device</strong>. The location and SWMS lists, the AI service and email are normally baked into the deployed site (<code>config.js</code>), so nobody has to set anything up. Anything changed here applies to this device only and overrides the deployed values — use <em>Reset to the deployed lists</em> to go back.</div>
+
+    <div class="card">
+      <h3>Locations</h3>
+      <div class="fine-print" style="margin:0 0 10px;">Use the names your team already uses on site (structure, span, pier, zone, chainage) so records line up with other project documents. A JHA can cover more than one area, and then appears under each of them.</div>
+      <div id="locList"></div>
+      <div class="field-row" style="margin-top:10px;">
+        <input type="text" id="locNew" placeholder="Add a location">
+        <button class="btn btn-outline" id="locAddBtn">+ Add</button>
+      </div>
+      <details style="margin-top:12px;"><summary class="link-btn">Paste a list (one per line)</summary>
+        <textarea class="type-fallback" id="locBulk" placeholder="Northbound, Span 1&#10;Northbound, Span 2&#10;Pier 1"></textarea>
+        <button class="btn btn-outline" id="locBulkBtn" style="margin-top:8px;">Add these</button>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>SWMS register</h3>
+      <div class="fine-print" style="margin:0 0 10px;">Only <strong>Current</strong> entries appear in the dropdown — mark old revisions <strong>Superseded</strong> so they can't be picked.</div>
+      <table class="steps cfg" id="swmsTable">
+        <thead><tr><th style="width:18%;">Ref</th><th style="width:47%;">Title</th><th style="width:10%;">Rev</th><th style="width:18%;">Status</th><th style="width:7%;"></th></tr></thead>
+        <tbody id="swmsBody"></tbody>
+      </table>
+      <div class="cfg-add">
+        <input type="text" id="swmsRef" placeholder="Ref">
+        <input type="text" id="swmsTitle" placeholder="Title">
+        <input type="text" id="swmsRev" placeholder="Rev">
+        <button class="btn btn-outline" id="swmsAddBtn">+ Add</button>
+      </div>
+      <div class="status-line error" id="swmsMsg"></div>
+      <details style="margin-top:12px;"><summary class="link-btn">Paste a register (ref, title, rev — one per line)</summary>
+        <div class="fine-print">Pasting straight from Excel works. If a title contains a comma, paste from Excel (tab-separated) rather than typing commas.</div>
+        <textarea class="type-fallback" id="swmsBulk" placeholder="SWMS-014, Barrier Removal and Demolition, 3"></textarea>
+        <button class="btn btn-outline" id="swmsBulkBtn" style="margin-top:8px;">Add these</button>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>AI service</h3>
+      <div class="fine-print" style="margin:0 0 10px;">Lets voice capture and AI structuring work together in this page when it is opened <em>outside</em> Claude. Normally baked into the deployed site; set here only to override on this device. Leave blank inside the Claude preview. An access key entered here is stored on this device only and is never included in exports.</div>
+      <div class="label">Service URL</div>
+      <input type="text" id="aiUrl" placeholder="https://&lt;project&gt;.supabase.co/functions/v1/jha-structure" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;">
+      <div class="label" style="margin-top:10px;">Access key</div>
+      <input type="password" id="aiKey" placeholder="Shared passphrase for testers" autocomplete="off" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;">
+      <div style="display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-outline" id="aiTestBtn">Test connection</button>
+      </div>
+      <div class="status-line" id="aiStatus"></div>
+    </div>
+
+    <div class="card">
+      <h3>Back up and share</h3>
+      <div class="status-line" id="cfgStatus"></div>
+      <div class="fine-print" style="margin:6px 0 8px;">To give every tester the same lists: set them up once, copy or download this, then import it on each device (or send it to be built into the file).</div>
+      <textarea class="type-fallback" id="cfgExport" readonly style="min-height:110px;font-family:monospace;font-size:12px;"></textarea>
+      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-outline" id="cfgCopyBtn">Copy</button>
+        <button class="btn btn-outline" id="cfgDownloadBtn">Download file</button>
+      </div>
+      <div class="label" style="margin-top:16px;">Import</div>
+      <textarea class="type-fallback" id="cfgImport" placeholder="Paste exported settings here"></textarea>
+      <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="cfgImportBtn">Apply import</button>
+        <button class="btn btn-outline" id="cfgResetBtn">Reset to the deployed lists</button>
+      </div>
+      <div class="status-line" id="cfgMsg"></div>
+    </div>
+  </section>
+
+  <div class="footer-note" id="footerNote">Working prototype · voice capture uses your browser\'s speech recognition where supported · AI structuring runs through the AI service · JHAs are stored on the project server and emailed to the project team</div>
+</main>
+
+<div class="sig-modal-backdrop" id="sigBackdrop">
+  <div class="sig-modal">
+    <h3 id="sigModalName">Sign on</h3>
+    <p id="sigModalText">I confirm I have reviewed the SWMS and understand the hazards and controls in this JHA.</p>
+    <input type="text" id="sigName" class="sig-input" placeholder="Your full name" autocomplete="name">
+    <input type="text" id="sigCompany" class="sig-input" placeholder="Company (optional)" autocomplete="organization">
+    <canvas id="sigPad" width="380" height="160"></canvas>
+    <div class="status-line error" id="sigMsg"></div>
+    <div class="btnrow">
+      <button class="btn btn-outline" id="sigClear">Clear</button>
+      <button class="btn btn-outline" id="sigCancel">Cancel</button>
+      <button class="btn btn-primary" id="sigConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+
+  // Deployment settings baked into the site (config.js). Everything is optional: with none of it
+  // the page still runs, in demo mode, using in-memory storage and the placeholder lists.
+  var BAKED = (window.JHA_CONFIG && typeof window.JHA_CONFIG === "object") ? window.JHA_CONFIG : {};
+  var BK = { supabase: BAKED.supabase || {}, ai: BAKED.ai || {}, email: BAKED.email || {}, lists: BAKED.lists || null, appUrl: BAKED.appUrl || "" };
+
+  var STEP_PROMPT = `You are helping a construction supervisor turn a spoken briefing into the Steps section of a Job Hazard Analysis (JHA). The transcript is raw speech-to-text, so expect filler words, false starts, repeated phrases and mis-heard words; use judgement to read through them.
+
+Rules:
+1. Identify the actual WORK OPERATION being performed (e.g. "Drill holes for restraint brackets"). That is the step label. If the briefing covers more than one distinct operation, return more than one step.
+2. For each step, return hazard/control PAIRS. Each pair is ONE hazard together with ONLY the controls that manage that specific hazard. Never pool several hazards against one combined list of controls. If a single control genuinely manages two hazards, repeat it against each.
+3. Use only controls the speaker actually said or clearly implied. If a hazard was raised but no control was given for it, set the control to exactly "No control stated - confirm with supervisor" rather than inventing one.
+4. Activity: a short 2-6 word heading for the whole task, including the location if one was stated (e.g. "Pier 1 restraint bracket drilling").
+
+Respond with ONLY a JSON object, no other text, no markdown fences, in exactly this shape:
+{"activity":"...","steps":[{"step":"...","rows":[{"hazard":"...","control":"..."}]}]}
+
+Transcript:
+`;
+
+  var CHANGE_PROMPT = `You are helping classify a mid-task change reported by a construction worker or supervisor on an approved Job Hazard Analysis (JHA). Read the input and extract: a short one-sentence summary of what changed, and a classification of exactly "Minor" or "Material". Material means: a new hazard not previously identified, a change of method, plant or exclusion zone, a near miss or incident, a new or changed control, or a personnel change requiring specific competency. Minor means: timing or sequencing only, with no change to the hazard or control picture. The input may end with a list of the edits that were made to the card as part of this change (steps or hazard/control pairs added, PPE, equipment, permits, SWMS or areas changed). Take those edits into account: adding a step, hazard, control, equipment or permit, or changing the SWMS, is Material. Respond with ONLY a JSON object, no other text, no markdown fences, in exactly this shape: {"summary":"...","classification":"Minor"}
+
+Input:
+`;
+
+  var initialState = function(){
+    return {
+      cardApproved: false,
+      cardTitle: "",
+      locations: [],
+      wms: "",
+      steps: [],
+      ppeMandatory: ["Hard hat", "Hi-vis", "Eye protection"],
+      ppe: { "Fall arrest harness":false, "Fall restraint harness":false, "Hearing protection":false, "Silica dust mask":false, "Welding mask":false },
+      equipment: [],
+      permits: [],
+      changeLog: [],
+      amending: false,
+      snapshot: null,
+      approverDraft: "",
+      // set once the JHA has been approved and saved
+      jhaId: null, seq: 0, rev: 0, approvedBy: "", createdAt: "", versions: [], signons: []
+    };
+  };
+
+  var state = initialState();
+
+  // ---------- navigation ----------
+  var JHA_PANELS = { task: 1, changelog: 1, signon: 1 };
+
+  function currentPanel(){
+    var el = document.querySelector(".panel.active");
+    return el ? el.id : "landing";
+  }
+  function updateChrome(){
+    var id = currentPanel();
+    document.querySelector(".tabbar").style.display = JHA_PANELS[id] ? "flex" : "none";
+    document.getElementById("homeBtn").style.display = id === "landing" ? "none" : "inline-block";
+    renderCardTitle();
+  }
+  function goToTab(id){
+    document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("active", b.dataset.tab === id); });
+    document.querySelectorAll(".panel").forEach(function(p){ p.classList.toggle("active", p.id === id); });
+    updateChrome();
+    renderAmendBanner();
+  }
+  document.querySelectorAll(".tab").forEach(function(btn){
+    btn.addEventListener("click", function(){ goToTab(btn.dataset.tab); });
+  });
+
+  // One banner under the top bar for things the person needs to see (save/email problems, etc.).
+  function showNotice(text, kind, actionLabel, actionFn){
+    var el = document.getElementById("notice");
+    if(!text){ el.style.display = "none"; el.innerHTML = ""; return; }
+    el.className = "banner" + (kind === "info" ? " info" : (kind === "error" ? " err" : ""));
+    el.style.display = "flex";
+    el.innerHTML = '<span style="flex:1;">' + escapeHtml(text) + '</span>' +
+      (actionLabel ? '<button class="link-btn" id="noticeAction">' + escapeHtml(actionLabel) + '</button>' : '') +
+      '<button class="link-btn" id="noticeClose" aria-label="Dismiss">✕</button>';
+    document.getElementById("noticeClose").addEventListener("click", function(){ showNotice(""); });
+    if(actionLabel){ document.getElementById("noticeAction").addEventListener("click", function(){ showNotice(""); actionFn(); }); }
+    if(kind === "info"){ setTimeout(function(){ if(el.textContent.indexOf(text) === 0){ showNotice(""); } }, 6000); }
+  }
+
+  var homeArmed = false;
+  document.getElementById("homeBtn").addEventListener("click", function(){
+    var btn = this;
+    var hasDraft = !state.jhaId && state.steps.length > 0 && currentPanel() !== "settings";
+    if(hasDraft && !homeArmed){
+      homeArmed = true; btn.textContent = "Discard this draft?";
+      setTimeout(function(){ homeArmed = false; btn.textContent = "← All JHAs"; }, 4000);
+      return;
+    }
+    homeArmed = false; btn.textContent = "← All JHAs";
+    showLanding();
+  });
+
+  // ---------- configuration: locations and SWMS register ----------
+  var CONFIG_KEY = "jhaDigitalConfig.v1";
+  var storageOk = true;
+  var PLACEHOLDER_CONFIG = {
+    locations: ["Southern Pavement Box", "Northern Pavement Box", "Abutment A", "Pier 1", "Pier 2", "Pier 3", "Pier 4", "Pier 5", "Pier 6", "Abutment B", "Span 1", "Span 2", "Span 3", "Span 4", "Span 5", "Span 6", "Span 7", "Sinnamon Rd Intersection", "Spinkbrae Civil Area"],
+    swms: [
+      { ref:"SWMS-014", title:"Barrier Removal & Demolition", rev:"3", status:"Current" },
+      { ref:"SWMS-021", title:"Piling & Foundations", rev:"2", status:"Current" },
+      { ref:"SWMS-033", title:"Traffic Management", rev:"5", status:"Current" },
+      { ref:"SWMS-045", title:"Concrete Pours", rev:"1", status:"Current" }
+    ]
+  };
+  var DEFAULT_CONFIG = normaliseConfig(BK.lists) || PLACEHOLDER_CONFIG;
+  function cloneCfg(c){ return JSON.parse(JSON.stringify(c)); }
+  function cleanStr(v){ return String(v == null ? "" : v).trim(); }
+  function isHttpUrl(u){ return /^https?:\/\//i.test(u || ""); }
+
+  // Returns a tidy copy of a config object, or null if it isn't one.
+  function normaliseConfig(c){
+    if(!c || !Array.isArray(c.locations) || !Array.isArray(c.swms)){ return null; }
+    var seen = {}, locs = [], sw = [];
+    c.locations.forEach(function(l){
+      l = cleanStr(l);
+      if(l && !seen[l.toLowerCase()]){ seen[l.toLowerCase()] = true; locs.push(l); }
+    });
+    c.swms.forEach(function(r){
+      if(!r || typeof r !== "object"){ return; }
+      var ref = cleanStr(r.ref), title = cleanStr(r.title);
+      if(!ref && !title){ return; }
+      sw.push({ ref: ref, title: title, rev: cleanStr(r.rev), status: r.status === "Superseded" ? "Superseded" : "Current" });
+    });
+    return { locations: locs, swms: sw };
+  }
+
+  function loadConfig(){
+    try{
+      var raw = window.localStorage.getItem(CONFIG_KEY);
+      if(raw){
+        var c = normaliseConfig(JSON.parse(raw));
+        if(c){ return c; }
+      }
+    }catch(e){ storageOk = false; }
+    return cloneCfg(DEFAULT_CONFIG);
+  }
+  var config = loadConfig();
+
+  function saveConfig(){
+    try{ window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }
+    catch(e){ storageOk = false; }
+    updateConfigStatus();
+  }
+  function updateConfigStatus(){
+    var el = document.getElementById("cfgStatus");
+    if(!el){ return; }
+    el.className = "status-line" + (storageOk ? "" : " warn");
+    el.textContent = storageOk
+      ? "Saved in this browser on this device."
+      : "This preview can't save between visits — your changes last until you reload. Use Download / Copy below to keep them.";
+  }
+
+  function swmsLabel(r){
+    return r.ref + (r.ref && r.title ? " · " : "") + r.title + (r.rev ? " · Rev " + r.rev : "");
+  }
+
+  function fillSelect(sel, placeholder, items, extra, current){
+    sel.innerHTML = "";
+    var first = document.createElement("option");
+    first.value = ""; first.textContent = placeholder;
+    sel.appendChild(first);
+    var all = items.concat(extra);
+    all.forEach(function(t){
+      var op = document.createElement("option");
+      op.value = t; op.textContent = t;
+      sel.appendChild(op);
+    });
+    // never silently drop a value that's already on the card
+    if(current && all.indexOf(current) === -1){
+      var gone = document.createElement("option");
+      gone.value = current; gone.textContent = current + " (no longer in list)";
+      sel.appendChild(gone);
+    }
+    sel.value = current || "";
+  }
+  function areasText(list){ return (list || []).join(" + "); }
+  // Older rows (and any seed data) may carry a single "location" string.
+  function areasOf(r){ return Array.isArray(r.locations) ? r.locations : (r.location ? [r.location] : []); }
+
+  // Chips for the areas already chosen, plus a dropdown offering the ones that are left.
+  function renderAreas(){
+    var locked = isLocked();
+    var chips = document.getElementById("areaChips");
+    chips.innerHTML = state.locations.length ? "" : '<span class="empty-note" style="padding:0;">No area selected yet</span>';
+    state.locations.forEach(function(a, i){
+      var c = document.createElement("span");
+      c.className = "chip area";
+      c.innerHTML = escapeHtml(a) + (locked ? "" : ' <button class="chip-x" data-rmarea="' + i + '" aria-label="Remove ' + escapeHtml(a) + '">×</button>');
+      chips.appendChild(c);
+    });
+    chips.querySelectorAll("[data-rmarea]").forEach(function(b){
+      b.addEventListener("click", function(){
+        if(isLocked()){ return; }
+        state.locations.splice(+b.dataset.rmarea, 1);
+        renderAreas(); renderCardTitle(); renderAmendBanner();
+      });
+    });
+    var sel = document.getElementById("locationSelect");
+    sel.innerHTML = "";
+    var first = document.createElement("option");
+    first.value = ""; first.textContent = state.locations.length ? "+ Add another area…" : "— Select an area —";
+    sel.appendChild(first);
+    config.locations.concat(["Other"]).filter(function(l){ return state.locations.indexOf(l) === -1; }).forEach(function(l){
+      var op = document.createElement("option"); op.value = l; op.textContent = l; sel.appendChild(op);
+    });
+    sel.value = "";
+    document.getElementById("areaAddRow").style.display = locked ? "none" : "flex";
+  }
+
+  function populateConfigSelects(){
+    renderAreas();
+    var live = config.swms.filter(function(r){ return r.status === "Current"; }).map(swmsLabel);
+    fillSelect(document.getElementById("wmsSelect"), "— Select SWMS —", live, ["Other / not yet issued"], state.wms);
+  }
+
+  function commitConfig(rerender){
+    saveConfig();
+    populateConfigSelects();
+    if(rerender === false){ document.getElementById("cfgExport").value = JSON.stringify(config, null, 2); }
+    else { renderSettings(); }
+  }
+
+  function renderSettings(){
+    var locHolder = document.getElementById("locList");
+    locHolder.innerHTML = config.locations.length ? "" : '<div class="empty-note">No locations yet — add one below.</div>';
+    config.locations.forEach(function(l, i){
+      var row = document.createElement("div");
+      row.className = "cfg-row";
+      row.innerHTML = '<span>' + escapeHtml(l) + '</span><button class="remove-btn" data-rmloc="' + i + '" aria-label="Remove">×</button>';
+      locHolder.appendChild(row);
+    });
+    locHolder.querySelectorAll("[data-rmloc]").forEach(function(b){
+      b.addEventListener("click", function(){ config.locations.splice(+b.dataset.rmloc, 1); commitConfig(); });
+    });
+
+    var body = document.getElementById("swmsBody");
+    body.innerHTML = "";
+    if(!config.swms.length){
+      body.innerHTML = '<tr><td colspan="5"><div class="empty-note">No SWMS yet — add one below.</div></td></tr>';
+    }
+    config.swms.forEach(function(r, i){
+      var tr = document.createElement("tr");
+      if(r.status === "Superseded"){ tr.className = "superseded"; }
+      tr.innerHTML =
+        '<td><input type="text" data-sw="ref" data-i="' + i + '" value="' + escapeHtml(r.ref) + '"></td>' +
+        '<td><input type="text" data-sw="title" data-i="' + i + '" value="' + escapeHtml(r.title) + '"></td>' +
+        '<td><input type="text" data-sw="rev" data-i="' + i + '" value="' + escapeHtml(r.rev) + '"></td>' +
+        '<td><select data-sw="status" data-i="' + i + '"><option' + (r.status === "Current" ? " selected" : "") + '>Current</option><option' + (r.status === "Superseded" ? " selected" : "") + '>Superseded</option></select></td>' +
+        '<td><button class="remove-btn" data-rmsw="' + i + '" aria-label="Remove">×</button></td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("input[data-sw]").forEach(function(el){
+      el.addEventListener("input", function(){ config.swms[+el.dataset.i][el.dataset.sw] = el.value; commitConfig(false); });
+    });
+    body.querySelectorAll("select[data-sw]").forEach(function(el){
+      el.addEventListener("change", function(){ config.swms[+el.dataset.i].status = el.value; commitConfig(); });
+    });
+    body.querySelectorAll("[data-rmsw]").forEach(function(b){
+      b.addEventListener("click", function(){ config.swms.splice(+b.dataset.rmsw, 1); commitConfig(); });
+    });
+
+    document.getElementById("cfgExport").value = JSON.stringify(config, null, 2);
+    updateConfigStatus();
+  }
+
+  function addLocations(list){
+    var have = {}; config.locations.forEach(function(l){ have[l.toLowerCase()] = true; });
+    var added = 0;
+    list.forEach(function(l){
+      l = cleanStr(l);
+      if(l && !have[l.toLowerCase()]){ have[l.toLowerCase()] = true; config.locations.push(l); added++; }
+    });
+    return added;
+  }
+  document.getElementById("locAddBtn").addEventListener("click", function(){
+    var inp = document.getElementById("locNew");
+    if(addLocations([inp.value])){ inp.value = ""; commitConfig(); }
+  });
+  document.getElementById("locNew").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter"){ document.getElementById("locAddBtn").click(); }
+  });
+  document.getElementById("locBulkBtn").addEventListener("click", function(){
+    var ta = document.getElementById("locBulk");
+    addLocations(ta.value.split(/\r?\n/));
+    ta.value = "";
+    commitConfig();
+  });
+
+  function parseSwmsLines(text){
+    return text.split(/\r?\n/).map(function(line){
+      line = line.trim();
+      if(!line){ return null; }
+      var cells = line.indexOf("\t") > -1 ? line.split("\t") : line.split(",");
+      var ref = cleanStr(cells[0]), title = cleanStr(cells[1]), rev = cleanStr(cells[2]);
+      if(/^(ref|swms)/i.test(ref) && /^title/i.test(title)){ return null; }
+      if(!ref && !title){ return null; }
+      return { ref: ref, title: title, rev: rev, status: "Current" };
+    }).filter(Boolean);
+  }
+  document.getElementById("swmsAddBtn").addEventListener("click", function(){
+    var msg = document.getElementById("swmsMsg");
+    var r = { ref: cleanStr(document.getElementById("swmsRef").value), title: cleanStr(document.getElementById("swmsTitle").value),
+              rev: cleanStr(document.getElementById("swmsRev").value), status: "Current" };
+    msg.textContent = "";
+    if(!r.ref && !r.title){ msg.textContent = "Enter a ref or a title."; return; }
+    config.swms.push(r);
+    ["swmsRef", "swmsTitle", "swmsRev"].forEach(function(id){ document.getElementById(id).value = ""; });
+    commitConfig();
+  });
+  document.getElementById("swmsBulkBtn").addEventListener("click", function(){
+    var ta = document.getElementById("swmsBulk");
+    parseSwmsLines(ta.value).forEach(function(r){ config.swms.push(r); });
+    ta.value = "";
+    commitConfig();
+  });
+
+  document.getElementById("cfgCopyBtn").addEventListener("click", function(){
+    var ta = document.getElementById("cfgExport"), msg = document.getElementById("cfgMsg");
+    var done = function(){ msg.className = "status-line"; msg.textContent = "Copied."; };
+    var fallback = function(){ ta.select(); try{ document.execCommand("copy"); done(); }catch(e){ msg.textContent = "Select the text above and copy it manually."; } };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done, fallback); }
+    else { fallback(); }
+  });
+  document.getElementById("cfgDownloadBtn").addEventListener("click", function(){
+    var msg = document.getElementById("cfgMsg");
+    try{
+      var blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "jha-settings.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }catch(e){ msg.className = "status-line error"; msg.textContent = "Download isn't available here — use Copy instead."; }
+  });
+  document.getElementById("cfgImportBtn").addEventListener("click", function(){
+    var msg = document.getElementById("cfgMsg");
+    var c = null;
+    try{ c = normaliseConfig(JSON.parse(document.getElementById("cfgImport").value)); }catch(e){ c = null; }
+    if(!c){ msg.className = "status-line error"; msg.textContent = "That doesn't look like exported settings — nothing was changed."; return; }
+    config = c;
+    document.getElementById("cfgImport").value = "";
+    commitConfig();
+    msg.className = "status-line"; msg.textContent = "Imported " + c.locations.length + " locations and " + c.swms.length + " SWMS.";
+  });
+  var resetArmed = false;
+  document.getElementById("cfgResetBtn").addEventListener("click", function(){
+    var btn = this, msg = document.getElementById("cfgMsg");
+    if(!resetArmed){
+      resetArmed = true; btn.textContent = "Click again to confirm";
+      setTimeout(function(){ resetArmed = false; btn.textContent = "Reset to the deployed lists"; }, 4000);
+      return;
+    }
+    resetArmed = false; btn.textContent = "Reset to the deployed lists";
+    config = cloneCfg(DEFAULT_CONFIG);
+    commitConfig();
+    msg.className = "status-line"; msg.textContent = "Reset to the deployed lists.";
+  });
+
+  // ---------- AI service: lets the page run outside Claude ----------
+  var AI_KEY = "jhaDigitalAi.v1";
+  var DEFAULT_AI_ENDPOINT = cleanStr(BK.ai.url);
+  var aiCfg = loadAi();
+
+  function loadAi(){
+    var c = { url: DEFAULT_AI_ENDPOINT, key: cleanStr(BK.ai.key) };
+    try{
+      var raw = window.localStorage.getItem(AI_KEY);
+      if(raw){
+        var o = JSON.parse(raw);
+        if(o && typeof o === "object"){ if("url" in o){ c.url = cleanStr(o.url); } c.key = cleanStr(o.key) || c.key; }
+      }
+    }catch(e){ storageOk = false; }
+    return c;
+  }
+  function saveAi(){
+    try{ window.localStorage.setItem(AI_KEY, JSON.stringify(aiCfg)); }catch(e){ storageOk = false; }
+    updateAiStatus();
+  }
+  function updateAiStatus(note, isError){
+    var el = document.getElementById("aiStatus");
+    if(!el){ return; }
+    el.className = "status-line" + (isError ? " error" : "");
+    el.textContent = note || (aiCfg.url
+      ? (aiCfg.key ? "Set. Press Test connection to check it." : "URL set — now enter the access key.")
+      : "Not set. Inside Claude, structuring uses Claude's built-in route; anywhere else it uses the offline fallback.");
+  }
+
+  // One request to the service. Returns the parsed body, or throws an Error whose message
+  // is written for the person using the page (it is shown on screen).
+  async function postService(payload){
+    var ctl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function(){ ctl.abort(); }, 30000) : null;
+    try{
+      var res = await fetch(aiCfg.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-jha-key": aiCfg.key },
+        body: JSON.stringify(payload),
+        signal: ctl ? ctl.signal : undefined
+      });
+      var body = null;
+      try{ body = await res.json(); }catch(e){ body = null; }
+      if(res.status === 401){ throw new Error("the access key was rejected — check it in Settings"); }
+      if(!res.ok || !body || !body.ok){ throw new Error((body && body.error) || ("the service returned " + res.status)); }
+      return body;
+    }catch(e){
+      if(e && e.name === "AbortError"){ throw new Error("the service took too long to respond"); }
+      if(e && e.name === "TypeError"){ throw new Error("couldn't reach the service — check the URL, and that this page's address is allowed on the service (CORS)"); }
+      throw e;
+    }finally{
+      if(timer){ clearTimeout(timer); }
+    }
+  }
+  async function callService(mode, text){ return (await postService({ mode: mode, text: text })).data; }
+
+  document.getElementById("aiUrl").value = aiCfg.url;
+  document.getElementById("aiKey").value = aiCfg.key;
+  document.getElementById("aiUrl").addEventListener("input", function(){
+    aiCfg.url = cleanStr(this.value);
+    saveAi();
+    if(aiCfg.url && !isHttpUrl(aiCfg.url)){ updateAiStatus("The URL must start with https://", true); }
+  });
+  document.getElementById("aiKey").addEventListener("input", function(){ aiCfg.key = cleanStr(this.value); saveAi(); });
+  document.getElementById("aiTestBtn").addEventListener("click", async function(){
+    if(!isHttpUrl(aiCfg.url)){ updateAiStatus("Enter the service URL (starting https://) first.", true); return; }
+    updateAiStatus("Testing…");
+    try{
+      var b = await postService({ mode: "ping" });
+      if(b.upstreamKey === "MISSING"){ updateAiStatus("Reached the service, but it has no Anthropic key set — add ANTHROPIC_API_KEY on the server.", true); }
+      else { updateAiStatus("Connected. Model: " + b.model + ". Ready."); }
+    }catch(e){
+      updateAiStatus("Failed — " + e.message + ".", true);
+    }
+  });
+  updateAiStatus();
+
+  // ---------- small helpers: time, ids, who is using this device ----------
+  function fmtClock(iso){
+    return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "");
+  }
+  function fmtWhen(iso){
+    if(!iso){ return ""; }
+    var d = new Date(iso), n = new Date();
+    if(d.toDateString() === n.toDateString()){ return fmtClock(iso); }
+    return d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" }) + ", " + fmtClock(iso);
+  }
+  function startOfToday(){ var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function daysAgo(n){ return new Date(Date.now() - n * 86400000); }
+  function enc(v){ return encodeURIComponent(v); }
+  function uuid(){
+    try{ if(window.crypto && window.crypto.randomUUID){ return window.crypto.randomUUID(); } }catch(e){}
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+      var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+  var WHO_KEY = "jhaDigitalWho.v1";
+  function recallWho(){
+    try{ var o = JSON.parse(window.localStorage.getItem(WHO_KEY) || "{}"); return { name: cleanStr(o.name), company: cleanStr(o.company) }; }
+    catch(e){ return { name: "", company: "" }; }
+  }
+  function rememberWho(name, company){
+    try{
+      var cur = recallWho();
+      window.localStorage.setItem(WHO_KEY, JSON.stringify({ name: cleanStr(name) || cur.name, company: company === undefined ? cur.company : cleanStr(company) }));
+    }catch(e){}
+  }
+
+  // ---------- storage: shared server (Supabase) or in-memory (demo / Claude preview) ----------
+  var SB = { url: cleanStr(BK.supabase.url).replace(/\/+$/, ""), key: cleanStr(BK.supabase.anonKey) };
+  var sharedMode = !!(SB.url && SB.key);
+  var DAYS_ACTIVE = 7;                      // a JHA is rewritten every 7 days
+  var mem = { versions: [], signons: [] };
+
+  function StoreError(kind, message){ var e = new Error(message); e.kind = kind; return e; }
+
+  async function sb(path, opts){
+    opts = opts || {};
+    var res;
+    try{
+      res = await fetch(SB.url + "/rest/v1/" + path, {
+        method: opts.method || "GET",
+        headers: Object.assign({ "apikey": SB.key, "Authorization": "Bearer " + SB.key, "Content-Type": "application/json" }, opts.headers || {}),
+        body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
+      });
+    }catch(e){
+      throw StoreError("offline", "Can't reach the JHA server — check your connection and try again.");
+    }
+    if(res.status === 409){ throw StoreError("conflict", "This JHA was changed by someone else."); }
+    if(res.status === 401 || res.status === 403){ throw StoreError("denied", "The JHA server refused the request — the site's database key or permissions need checking."); }
+    if(!res.ok){
+      var t = ""; try{ t = await res.text(); }catch(e){}
+      throw StoreError("server", "The JHA server returned an error (" + res.status + ")" + (t ? ": " + t.slice(0, 140) : "."));
+    }
+    if(opts.headers && opts.headers.Prefer === "return=minimal"){ return null; }
+    return res.json();
+  }
+
+  // Turns raw version rows + today's sign-ons into one summary per active JHA.
+  function summariseActive(rows, signons){
+    var byId = {};
+    rows.forEach(function(r){ (byId[r.jha_id] = byId[r.jha_id] || []).push(r); });
+    var out = [];
+    Object.keys(byId).forEach(function(id){
+      var vs = byId[id].sort(function(a, b){ return a.seq - b.seq; });
+      var base = vs[0];
+      if(base.seq !== 1){ return; }                                   // baseline is outside the window -> expired
+      var expires = new Date(new Date(base.created_at).getTime() + DAYS_ACTIVE * 86400000);
+      if(expires.getTime() <= Date.now()){ return; }
+      var latest = vs[vs.length - 1];
+      var latestByName = {};
+      signons.filter(function(x){ return x.jha_id === id; }).forEach(function(x){ latestByName[cleanStr(x.name).toLowerCase()] = x; });
+      var names = Object.keys(latestByName);
+      var current = names.filter(function(n){ return latestByName[n].rev === latest.rev; }).length;
+      out.push({ id: id, title: latest.title, locations: areasOf(latest), swms: latest.swms, rev: latest.rev, seq: latest.seq,
+        approvedBy: base.approved_by, createdAt: base.created_at, lastAt: latest.created_at, expiresAt: expires.toISOString(),
+        signedNow: current, needResign: names.length - current });
+    });
+    out.sort(function(a, b){ return new Date(b.lastAt) - new Date(a.lastAt); });
+    return out;
+  }
+
+  var sharedStore = {
+    async listActive(){
+      var rows = await sb("jha_versions?select=jha_id,seq,rev,title,locations,swms,approved_by,created_at&created_at=gte." + enc(daysAgo(DAYS_ACTIVE).toISOString()) + "&order=created_at.desc&limit=1000");
+      var ids = []; rows.forEach(function(r){ if(ids.indexOf(r.jha_id) === -1){ ids.push(r.jha_id); } });
+      var sig = ids.length
+        ? await sb("signons?select=jha_id,rev,name,signed_at&signed_at=gte." + enc(startOfToday().toISOString()) + "&jha_id=in.(" + ids.join(",") + ")&order=signed_at.asc&limit=2000")
+        : [];
+      return summariseActive(rows, sig);
+    },
+    getJha: function(id){ return sb("jha_versions?jha_id=eq." + enc(id) + "&select=*&order=seq.asc"); },
+    getSignons: function(id){
+      // never selects the signature image: the public key can list who signed, not read signatures
+      return sb("signons?jha_id=eq." + enc(id) + "&select=name,company,rev,signed_at&signed_at=gte." + enc(startOfToday().toISOString()) + "&order=signed_at.asc&limit=500");
+    },
+    createVersion: function(row){ return sb("jha_versions", { method: "POST", headers: { "Prefer": "return=minimal" }, body: row }); },
+    addSignon: function(row){ return sb("signons", { method: "POST", headers: { "Prefer": "return=minimal" }, body: row }); }
+  };
+
+  var memStore = {
+    async listActive(){
+      var cutoff = daysAgo(DAYS_ACTIVE).getTime(), today = startOfToday().getTime();
+      var rows = mem.versions.filter(function(v){ return new Date(v.created_at).getTime() >= cutoff; });
+      var sig = mem.signons.filter(function(x){ return new Date(x.signed_at).getTime() >= today; });
+      return summariseActive(JSON.parse(JSON.stringify(rows)), sig);
+    },
+    async getJha(id){
+      return JSON.parse(JSON.stringify(mem.versions.filter(function(v){ return v.jha_id === id; }).sort(function(a, b){ return a.seq - b.seq; })));
+    },
+    async getSignons(id){
+      var today = startOfToday().getTime();
+      return mem.signons.filter(function(x){ return x.jha_id === id && new Date(x.signed_at).getTime() >= today; })
+        .map(function(x){ return { name: x.name, company: x.company, rev: x.rev, signed_at: x.signed_at }; });
+    },
+    async createVersion(row){
+      if(mem.versions.some(function(v){ return v.jha_id === row.jha_id && v.seq === row.seq; })){ throw StoreError("conflict", "This JHA was changed by someone else."); }
+      var copy = JSON.parse(JSON.stringify(row)); copy.created_at = new Date().toISOString();
+      mem.versions.push(copy); return null;
+    },
+    async addSignon(row){
+      var copy = JSON.parse(JSON.stringify(row)); copy.signed_at = new Date().toISOString();
+      mem.signons.push(copy); return null;
+    }
+  };
+  var store = sharedMode ? sharedStore : memStore;
+
+  // ---------- email to the project team (EmailJS; recipients are fixed in the EmailJS template) ----------
+  var EM = { serviceId: cleanStr(BK.email.serviceId), templateId: cleanStr(BK.email.templateId), publicKey: cleanStr(BK.email.publicKey) };
+  var emailConfigured = !!(EM.serviceId && EM.templateId && EM.publicKey);
+
+  function jhaLink(id){
+    var base = cleanStr(BK.appUrl) || (window.location.origin + window.location.pathname);
+    return base + "?jha=" + enc(id);
+  }
+
+  function buildEmailParams(kind, row){
+    var card = row.card || {}, c = row.change || {};
+    var cls = c.classification || "Minor";
+    var by = kind === "approved" ? row.approved_by : (c.raised_by || "unknown");
+    var subject = kind === "approved"
+      ? "JHA approved: " + row.title + " — " + areasText(areasOf(row)) + " (Rev " + row.rev + ")"
+      : "JHA change (" + cls + "): " + row.title + " — " + areasText(areasOf(row)) + " (Rev " + row.rev + ")";
+    var h = [], t = [];
+    h.push('<p style="font-size:15px;margin:0 0 6px;"><strong>' + escapeHtml(row.title) + '</strong></p>');
+    h.push('<p style="margin:0 0 10px;color:#444;">' + escapeHtml(areasText(areasOf(row))) + ' · ' + escapeHtml(row.swms) + '<br>' +
+      (kind === "approved" ? 'Approved by ' : 'Change raised by ') + escapeHtml(by) + ' · Rev ' + row.rev + ' · ' + escapeHtml(new Date().toLocaleString()) + '</p>');
+    t.push(row.title, areasText(areasOf(row)) + " · " + row.swms, (kind === "approved" ? "Approved by " : "Change raised by ") + by + " · Rev " + row.rev, "");
+    if(kind !== "approved"){
+      h.push('<p style="margin:0 0 6px;"><strong>' + escapeHtml(cls) + ' change:</strong> ' + escapeHtml(c.summary || "") + '</p>');
+      t.push(cls + " change: " + (c.summary || ""));
+      if(c.edits && c.edits.length){
+        h.push('<ul style="margin:0 0 12px;">' + c.edits.map(function(e){ return '<li>' + escapeHtml(e) + '</li>'; }).join("") + '</ul>');
+        t.push("Card edits:"); c.edits.forEach(function(e){ t.push(" - " + e); });
+      }
+      t.push("");
+    }
+    (card.steps || []).forEach(function(st, i){
+      h.push('<h4 style="margin:14px 0 4px;">Step ' + (i + 1) + ' — ' + escapeHtml(st.step || "Untitled operation") + '</h4>');
+      h.push('<table style="border-collapse:collapse;width:100%;font-size:13px;" border="1" cellpadding="6"><tr style="background:#12233A;color:#fff;"><th align="left">Ref</th><th align="left">Hazard</th><th align="left">Control</th></tr>' +
+        (st.rows || []).map(function(r, j){ return '<tr><td>' + (i + 1) + '.' + (j + 1) + '</td><td>' + escapeHtml(r.hazard) + '</td><td>' + escapeHtml(r.control) + '</td></tr>'; }).join("") + '</table>');
+      t.push("Step " + (i + 1) + " — " + (st.step || "Untitled operation"));
+      (st.rows || []).forEach(function(r, j){ t.push("  " + (i + 1) + "." + (j + 1) + " " + r.hazard + "  ->  " + r.control); });
+    });
+    var ppeOn = Object.keys(card.ppe || {}).filter(function(k){ return card.ppe[k]; });
+    var ppe = ["Hard hat", "Hi-vis", "Eye protection (mandatory)"].concat(ppeOn);
+    h.push('<p style="margin:14px 0 4px;"><strong>PPE:</strong> ' + escapeHtml(ppe.join(", ")) + '</p>');
+    t.push("", "PPE: " + ppe.join(", "));
+    var eq = (card.equipment || []).map(function(n){
+      var tk = EQUIPMENT_REQUIREMENTS[n] || [];
+      return n + (tk.length ? " (requires: " + tk.join(", ") + ")" : "");
+    });
+    h.push('<p style="margin:4px 0;"><strong>Equipment:</strong> ' + escapeHtml(eq.length ? eq.join("; ") : "none") + '</p>');
+    t.push("Equipment: " + (eq.length ? eq.join("; ") : "none"));
+    var pm = (card.permits || []).map(permitLabel);
+    h.push('<p style="margin:4px 0;"><strong>Permits:</strong> ' + escapeHtml(pm.length ? pm.join("; ") : "none") + '</p>');
+    t.push("Permits: " + (pm.length ? pm.join("; ") : "none"));
+    var link = jhaLink(row.jha_id);
+    h.push('<p style="margin:14px 0 0;"><a href="' + escapeHtml(link) + '">Open this JHA</a></p>');
+    t.push("", "Open this JHA: " + link);
+    return { subject: subject, kind: kind, jha_title: row.title, jha_location: areasText(areasOf(row)), jha_swms: row.swms, jha_rev: String(row.rev),
+      jha_by: by, jha_link: link, message_html: h.join(""), message_text: t.join("\n") };
+  }
+
+  async function sendJhaEmail(kind, row){
+    if(!emailConfigured){ return { ok: false, skipped: true }; }
+    try{
+      var res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ service_id: EM.serviceId, template_id: EM.templateId, user_id: EM.publicKey, template_params: buildEmailParams(kind, row) })
+      });
+      if(!res.ok){
+        var t = ""; try{ t = await res.text(); }catch(e){}
+        return { ok: false, error: "the email service said: " + (t || res.status) };
+      }
+      return { ok: true };
+    }catch(e){
+      return { ok: false, error: "couldn't reach the email service" };
+    }
+  }
+  async function emailAndReport(kind, row){
+    var r = await sendJhaEmail(kind, row);
+    var label = kind === "approved" ? "JHA saved" : "Change saved";
+    if(r.ok){ showNotice("Emailed to the project team.", "info"); }
+    else if(r.skipped){ showNotice(label + " — but email isn't set up on this site, so the project team has not been notified.", "error"); }
+    else { showNotice(label + " — but the email to the project team failed (" + r.error + ").", "error", "Retry email", function(){ emailAndReport(kind, row); }); }
+  }
+
+  // ---------- landing page ----------
+  var LOC_FILTER = "";
+  var landingData = null;
+
+  function showLanding(){
+    goToTab("landing");
+    loadLanding();
+  }
+
+  async function loadLanding(){
+    var list = document.getElementById("landingList");
+    list.innerHTML = '<div class="empty-note">Loading JHAs…</div>';
+    try{
+      landingData = await store.listActive();
+      renderLanding();
+    }catch(e){
+      landingData = null;
+      list.innerHTML = '<div class="banner err" style="display:block;">' + escapeHtml(e.message) + ' <button class="link-btn" id="landingRetry">Try again</button></div>';
+      document.getElementById("landingRetry").addEventListener("click", loadLanding);
+    }
+  }
+
+  // The area picker offers only areas that have an active JHA right now (with a count), so
+  // one QR code is enough: people open the page and narrow to their own area in one tap.
+  function renderLanding(){
+    var items = landingData || [];
+    var want = LOC_FILTER.toLowerCase();
+    var shown = LOC_FILTER ? items.filter(function(i){ return (i.locations || []).some(function(a){ return cleanStr(a).toLowerCase() === want; }); }) : items;
+
+    var counts = {}, names = {};
+    items.forEach(function(i){ (i.locations || []).forEach(function(a){ var k = cleanStr(a).toLowerCase(); counts[k] = (counts[k] || 0) + 1; names[k] = names[k] || cleanStr(a); }); });
+    var order = [];
+    config.locations.forEach(function(l){ var k = cleanStr(l).toLowerCase(); if(counts[k] && order.indexOf(k) === -1){ order.push(k); } });
+    Object.keys(counts).filter(function(k){ return order.indexOf(k) === -1; }).sort().forEach(function(k){ order.push(k); });
+    if(LOC_FILTER && order.indexOf(want) === -1){ order.push(want); names[want] = LOC_FILTER; }
+    var sel = document.getElementById("landingArea");
+    sel.innerHTML = "";
+    var all = document.createElement("option"); all.value = ""; all.textContent = "All areas (" + items.length + ")"; sel.appendChild(all);
+    order.forEach(function(k){ var o = document.createElement("option"); o.value = names[k]; o.textContent = names[k] + " (" + (counts[k] || 0) + ")"; sel.appendChild(o); });
+    sel.value = LOC_FILTER ? names[want] : "";
+    document.getElementById("landingAreaRow").style.display = (items.length || LOC_FILTER) ? "flex" : "none";
+
+    document.getElementById("landingHeading").textContent = LOC_FILTER ? "JHAs at " + LOC_FILTER : "Active JHAs";
+    document.getElementById("landingSub").textContent = shown.length
+      ? "Tap a JHA to review it and sign on."
+      : (LOC_FILTER ? "No active JHAs at " + LOC_FILTER + " yet." : "No active JHAs yet.") + " Create one to get started.";
+    var demo = document.getElementById("landingDemoNote");
+    demo.style.display = sharedMode ? "none" : "block";
+    demo.textContent = "Demo mode: no project server is connected, so JHAs are kept in this browser tab only and disappear when it is refreshed.";
+    document.getElementById("clearDemoBtn").style.display = sharedMode ? "none" : "inline";
+    document.getElementById("modeTag").textContent = sharedMode ? "Prototype" : "Demo — this device only";
+
+    var list = document.getElementById("landingList");
+    list.innerHTML = "";
+    shown.forEach(function(j){
+      var b = document.createElement("button");
+      b.className = "jha-item";
+      b.dataset.id = j.id;
+      var hoursLeft = (new Date(j.expiresAt).getTime() - Date.now()) / 3600000;
+      var valid = "Valid until " + new Date(j.expiresAt).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+      var signedTxt = j.signedNow + " signed on today" + (j.needResign ? ' · <span class="warn">' + j.needResign + ' to re-sign</span>' : "");
+      b.innerHTML =
+        '<div class="jha-item-top"><strong>' + escapeHtml(j.title) + '</strong><span class="rev-pill' + (j.rev > 1 ? " hot" : "") + '">Rev ' + j.rev + '</span></div>' +
+        '<div class="jha-item-sub">' + escapeHtml((j.locations || []).join(' · ')) + ' · ' + escapeHtml(shortWms(j.swms)) + '<br>Approved by ' + escapeHtml(j.approvedBy) + ' · ' + escapeHtml(fmtWhen(j.createdAt)) + '</div>' +
+        '<div class="jha-item-foot"><span class="' + (j.signedNow ? "ok" : "") + '">' + signedTxt + '</span><span class="' + (hoursLeft < 24 ? "soon" : "") + '">' + escapeHtml(valid) + '</span></div>';
+      b.addEventListener("click", function(){ openJha(j.id); });
+      list.appendChild(b);
+    });
+  }
+
+  document.getElementById("newJhaBtn").addEventListener("click", function(){ startNewJha(); });
+  document.getElementById("landingRefresh").addEventListener("click", function(){ loadLanding(); });
+  document.getElementById("landingArea").addEventListener("change", function(){ LOC_FILTER = cleanStr(this.value); renderLanding(); renderCardTitle(); });
+  document.getElementById("openSettingsBtn").addEventListener("click", function(){ goToTab("settings"); });
+  document.getElementById("clearDemoBtn").addEventListener("click", function(){ mem.versions = []; mem.signons = []; loadLanding(); });
+
+  function startNewJha(){
+    showNotice("");
+    state = initialState();
+    renderAll();
+    goToTab("task");
+  }
+
+  function entryFromVersion(v){
+    if(v.seq === 1){
+      return { time: fmtWhen(v.created_at), summary: "Original JHA completed", sub: "Approved by " + v.approved_by, tag: "Baseline", color: CHANGE_COLORS.Baseline, edits: [] };
+    }
+    var c = v.change || {};
+    var cls = c.classification === "Material" ? "Material" : "Minor";
+    return { time: fmtWhen(v.created_at), summary: c.summary || "Change logged",
+      sub: "Raised by " + (c.raised_by || "unknown") + (cls === "Material" ? " · now Rev " + v.rev : " · logged only"),
+      tag: cls, color: CHANGE_COLORS[cls], edits: c.edits || [] };
+  }
+
+  function cardPayload(){
+    return JSON.parse(JSON.stringify({ steps: state.steps, ppe: state.ppe, equipment: state.equipment, permits: state.permits }));
+  }
+
+  function loadStoredJha(versions, signons){
+    var base = versions[0], latest = versions[versions.length - 1], card = latest.card || {};
+    state = initialState();
+    state.cardApproved = true;
+    state.jhaId = latest.jha_id; state.seq = latest.seq; state.rev = latest.rev;
+    state.cardTitle = latest.title || ""; state.locations = areasOf(latest).slice(); state.wms = latest.swms || "";
+    state.steps = JSON.parse(JSON.stringify(card.steps || []));
+    state.ppe = Object.assign(initialState().ppe, card.ppe || {});
+    state.equipment = (card.equipment || []).slice();
+    state.permits = JSON.parse(JSON.stringify(card.permits || []));
+    state.approvedBy = base.approved_by; state.createdAt = base.created_at;
+    state.versions = versions; state.signons = signons || [];
+    state.changeLog = versions.map(entryFromVersion);
+    renderAll();
+  }
+
+  async function openJha(id){
+    showNotice("");
+    try{
+      var versions = await store.getJha(id);
+      if(!versions || !versions.length){
+        showNotice("That JHA couldn't be found — it may have expired.", "error");
+        showLanding();
+        return;
+      }
+      var signons = await store.getSignons(id);
+      loadStoredJha(versions, signons);
+      goToTab("task");
+    }catch(e){
+      showNotice(e.message, "error", "Try again", function(){ openJha(id); });
+      if(currentPanel() === "landing"){ loadLanding(); }
+    }
+  }
+
+  // ---------- title / location / SWMS ----------
+  function renderCardTitle(){
+    var title = state.cardTitle || "Untitled work activity";
+    document.getElementById("cardTitleHeading").textContent = title;
+    var note = document.getElementById("cardTitleNote");
+    if(state.jhaId){
+      note.style.display = "block";
+      note.textContent = "Rev " + state.rev + " · approved by " + state.approvedBy + " · " + fmtWhen(state.createdAt);
+    } else {
+      note.style.display = state.cardTitle ? "none" : "block";
+      note.textContent = "Record the first step below to set this from the briefing";
+    }
+    var panel = currentPanel();
+    document.getElementById("topbarMeta").textContent =
+      panel === "landing" ? (LOC_FILTER ? "JHAs · " + LOC_FILTER : "Active JHAs") :
+      panel === "settings" ? "Admin settings" :
+      title + (state.locations.length ? " · " + areasText(state.locations) : "");
+    document.getElementById("changeLogHeading").textContent = title + " — change history";
+    document.getElementById("signonHeading").textContent = title + " — sign-on";
+    document.getElementById("signonWmsNote").textContent = state.wms
+      ? "Signing confirms you have reviewed " + shortWms(state.wms) + " and this JHA"
+      : "Signing confirms you have reviewed the selected SWMS and this JHA";
+  }
+  document.getElementById("locationSelect").addEventListener("change", function(){
+    var v = this.value;
+    if(isLocked() || !v){ return; }
+    if(state.locations.indexOf(v) === -1){ state.locations.push(v); }
+    renderAreas(); renderCardTitle(); renderAmendBanner();
+  });
+  document.getElementById("wmsSelect").addEventListener("change", function(){
+    state.wms = this.value;
+    renderCardTitle();
+  });
+
+  // ---------- PPE chips ----------
+  function renderPPE(){
+    var mandatoryHolder = document.getElementById("ppeMandatory");
+    mandatoryHolder.innerHTML = "";
+    state.ppeMandatory.forEach(function(name){
+      var chip = document.createElement("span");
+      chip.className = "chip mandatory";
+      chip.textContent = name;
+      mandatoryHolder.appendChild(chip);
+    });
+
+    var holder = document.getElementById("ppeTags");
+    holder.innerHTML = "";
+    Object.keys(state.ppe).forEach(function(name){
+      var b = document.createElement("button");
+      b.className = "chip" + (state.ppe[name] ? " on" : "");
+      b.textContent = name;
+      b.disabled = isLocked();
+      b.addEventListener("click", function(){ if(isLocked()) return; state.ppe[name] = !state.ppe[name]; renderPPE(); });
+      holder.appendChild(b);
+    });
+  }
+
+  var EQUIPMENT_REQUIREMENTS = {
+    "EWP (boom lift)": ["High Risk Work Licence (WP)", "Working at Heights ticket"],
+    "EWP (scissor lift)": ["Working at Heights ticket"],
+    "Mobile crane": ["High Risk Work Licence (CN)"],
+    "Scaffold": ["High Risk Work Licence (Scaffolding)"],
+    "Forklift": ["High Risk Work Licence (LF)"],
+    "Excavator": ["Plant competency required"],
+    "Chainsaw": ["Chainsaw competency ticket"],
+    "Hand tools": []
+  };
+
+  function renderEquipment(){
+    var holder = document.getElementById("equipmentList");
+    holder.innerHTML = "";
+    if(state.equipment.length === 0){
+      holder.innerHTML = '<div class="empty-note">No equipment added yet.</div>';
+    }
+    state.equipment.forEach(function(name, i){
+      var reqs = EQUIPMENT_REQUIREMENTS[name] || [];
+      var chipsHtml = reqs.length
+        ? reqs.map(function(r){ return '<span class="chip req">'+escapeHtml(r)+'</span>'; }).join("")
+        : '<span style="font-size:12px;color:var(--muted);font-style:italic;">No licence or ticket required</span>';
+      var row = document.createElement("div");
+      row.className = "equip-row";
+      row.innerHTML =
+        '<div class="equip-row-top"><span class="equip-name">'+escapeHtml(name)+'</span>' + (isLocked() ? '' : '<button class="remove-btn" data-idx="'+i+'" aria-label="Remove">×</button>') + '</div>' +
+        '<div class="tags">'+chipsHtml+'</div>';
+      holder.appendChild(row);
+    });
+    holder.querySelectorAll(".remove-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.equipment.splice(parseInt(btn.dataset.idx, 10), 1);
+        renderEquipment();
+      });
+    });
+  }
+  document.getElementById("equipmentAddBtn").addEventListener("click", function(){
+    if(isLocked()) return;
+    state.equipment.push(document.getElementById("equipmentAddSelect").value);
+    renderEquipment();
+  });
+
+  function renderPermits(){
+    var holder = document.getElementById("permitsList");
+    holder.innerHTML = "";
+    if(state.permits.length === 0){
+      holder.innerHTML = '<div class="empty-note">No permits added yet.</div>';
+    }
+    state.permits.forEach(function(p, i){
+      var row = document.createElement("div");
+      row.className = "permit-row";
+      row.innerHTML =
+        '<span class="permit-type">'+escapeHtml(p.type)+'</span>' +
+        '<input type="text" data-idx="'+i+'" value="'+escapeHtml(p.number)+'" placeholder="Number / reference"' + (isLocked() ? ' disabled' : '') + '>' +
+        (isLocked() ? '' : '<button class="remove-btn" data-idx="'+i+'" aria-label="Remove">×</button>');
+      holder.appendChild(row);
+    });
+    holder.querySelectorAll("input[type=text]").forEach(function(inp){
+      inp.addEventListener("input", function(){
+        state.permits[parseInt(inp.dataset.idx, 10)].number = inp.value;
+      });
+    });
+    holder.querySelectorAll(".remove-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.permits.splice(parseInt(btn.dataset.idx, 10), 1);
+        renderPermits();
+      });
+    });
+  }
+  document.getElementById("permitAddBtn").addEventListener("click", function(){
+    if(isLocked()) return;
+    state.permits.push({ type: document.getElementById("permitAddSelect").value, number: "" });
+    renderPermits();
+  });
+
+  // ---------- steps table ----------
+  function renderSteps(){
+    var body = document.getElementById("stepsBody");
+    var empty = document.getElementById("stepsEmptyNote");
+    var locked = isLocked();
+    body.innerHTML = "";
+    if(state.steps.length === 0){ empty.style.display = "block"; return; }
+    empty.style.display = "none";
+    state.steps.forEach(function(st, i){
+      var head = document.createElement("tr");
+      head.className = "step-head";
+      if(locked){
+        head.innerHTML = '<td colspan="4">Step ' + (i+1) + ' — ' + escapeHtml(st.step || "Untitled operation") + '</td>';
+      } else {
+        head.innerHTML = '<td colspan="4"><div class="step-edit"><span>Step ' + (i+1) + ' —</span>' +
+          '<input type="text" data-sk="1" data-si="' + i + '" value="' + escapeHtml(st.step) + '" placeholder="Work operation">' +
+          '<button class="link-btn" data-rmstep="' + i + '">Remove step</button></div></td>';
+      }
+      body.appendChild(head);
+      st.rows.forEach(function(r, j){
+        var tr = document.createElement("tr");
+        var gap = /^no control stated/i.test(r.control || "");
+        if(locked){
+          tr.innerHTML = '<td>' + (i+1) + '.' + (j+1) + '</td><td>' + escapeHtml(r.hazard) + '</td>' +
+            '<td' + (gap ? ' class="gap"' : '') + '>' + escapeHtml(r.control) + '</td><td></td>';
+        } else {
+          tr.innerHTML = '<td>' + (i+1) + '.' + (j+1) + '</td>' +
+            '<td><textarea rows="2" data-k="hazard" data-si="' + i + '" data-ri="' + j + '">' + escapeHtml(r.hazard) + '</textarea></td>' +
+            '<td><textarea rows="2" data-k="control" data-si="' + i + '" data-ri="' + j + '"' + (gap ? ' class="gap"' : '') + '>' + escapeHtml(r.control) + '</textarea></td>' +
+            '<td>' + (st.rows.length > 1 ? '<button class="remove-btn" data-rmrow="1" data-si="' + i + '" data-ri="' + j + '" aria-label="Remove this pair">×</button>' : '') + '</td>';
+        }
+        body.appendChild(tr);
+      });
+      if(!locked){
+        var add = document.createElement("tr");
+        add.className = "add-row";
+        add.innerHTML = '<td></td><td colspan="3"><button class="link-btn" data-addrow="' + i + '">+ Add hazard / control pair</button></td>';
+        body.appendChild(add);
+      }
+    });
+    if(!locked){
+      body.querySelectorAll("textarea[data-k]").forEach(function(el){
+        el.addEventListener("input", function(){
+          state.steps[+el.dataset.si].rows[+el.dataset.ri][el.dataset.k] = el.value;
+          if(el.dataset.k === "control"){ el.classList.toggle("gap", /^no control stated/i.test(el.value)); }
+        });
+      });
+      body.querySelectorAll("input[data-sk]").forEach(function(el){
+        el.addEventListener("input", function(){ state.steps[+el.dataset.si].step = el.value; });
+      });
+      body.querySelectorAll("[data-rmstep]").forEach(function(b){
+        b.addEventListener("click", function(){ state.steps.splice(+b.dataset.rmstep, 1); renderSteps(); });
+      });
+      body.querySelectorAll("[data-rmrow]").forEach(function(b){
+        b.addEventListener("click", function(){ state.steps[+b.dataset.si].rows.splice(+b.dataset.ri, 1); renderSteps(); });
+      });
+      body.querySelectorAll("[data-addrow]").forEach(function(b){
+        b.addEventListener("click", function(){ state.steps[+b.dataset.addrow].rows.push({ id: uid(), hazard:"", control:"" }); renderSteps(); });
+      });
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str||"").replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  // ---------- ids, lock state, snapshot and diff ----------
+  var _uid = 0;
+  function uid(){ return ++_uid; }
+  function nowTime(){ return new Date().toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }).toLowerCase().replace(" ",""); }
+
+  // The card is read-only once approved, unless a tracked change is in progress.
+  function isLocked(){ return state.cardApproved && !state.amending; }
+
+  function takeSnapshot(){
+    return JSON.parse(JSON.stringify({ locations: state.locations, wms: state.wms, steps: state.steps, ppe: state.ppe, equipment: state.equipment, permits: state.permits }));
+  }
+  function restoreSnapshot(){
+    var snap = state.snapshot;
+    if(!snap) return;
+    state.locations = snap.locations || []; state.wms = snap.wms; state.steps = snap.steps;
+    state.ppe = snap.ppe; state.equipment = snap.equipment; state.permits = snap.permits;
+  }
+  function syncSelects(){
+    populateConfigSelects();
+    renderCardTitle();
+  }
+
+  function permitLabel(p){ return p.type + (p.number ? " #" + p.number : ""); }
+  function shortWms(w){ return w ? w.split(" · ").slice(0, 2).join(" ") : "none"; }
+  function listDiff(oldL, newL){
+    var added = newL.slice(), removed = oldL.slice();
+    oldL.forEach(function(x){ var k = added.indexOf(x); if(k > -1){ added.splice(k, 1); } });
+    newL.forEach(function(x){ var k = removed.indexOf(x); if(k > -1){ removed.splice(k, 1); } });
+    return { added: added, removed: removed };
+  }
+
+  // Human-readable list of everything that differs from the approved baseline.
+  function diffAgainstSnapshot(){
+    var snap = state.snapshot, out = [];
+    if(!snap){ return out; }
+    var la = listDiff(snap.locations || [], state.locations);
+    la.added.forEach(function(x){ out.push("Area added: " + x); });
+    la.removed.forEach(function(x){ out.push("Area removed: " + x); });
+    if(snap.wms !== state.wms){ out.push("SWMS: " + shortWms(snap.wms) + " → " + shortWms(state.wms)); }
+
+    var oldSteps = {}; snap.steps.forEach(function(st){ oldSteps[st.id] = st; });
+    var newStepIds = {};
+    state.steps.forEach(function(st, i){
+      newStepIds[st.id] = true;
+      var old = oldSteps[st.id];
+      if(!old){
+        out.push("Step " + (i+1) + " added: " + (st.step || "Untitled operation") + " (" + st.rows.length + " hazard/control pair" + (st.rows.length === 1 ? "" : "s") + ")");
+        return;
+      }
+      if((old.step || "") !== (st.step || "")){ out.push("Step " + (i+1) + " renamed: " + (old.step || "untitled") + " → " + (st.step || "untitled")); }
+      var oldRows = {}; old.rows.forEach(function(r){ oldRows[r.id] = r; });
+      var newRowIds = {};
+      st.rows.forEach(function(r, j){
+        newRowIds[r.id] = true;
+        var o = oldRows[r.id], ref = (i+1) + "." + (j+1);
+        if(!o){ out.push("Added " + ref + ": " + r.hazard + (r.control ? " — " + r.control : "")); return; }
+        var h = o.hazard !== r.hazard, c = o.control !== r.control;
+        if(h || c){ out.push("Edited " + ref + " (" + (h && c ? "hazard and control" : (h ? "hazard" : "control")) + "): " + r.hazard + " — " + r.control); }
+      });
+      old.rows.forEach(function(r){ if(!newRowIds[r.id]){ out.push("Removed from step " + (i+1) + ": " + r.hazard); } });
+    });
+    snap.steps.forEach(function(st){ if(!newStepIds[st.id]){ out.push("Step removed: " + (st.step || "Untitled operation")); } });
+
+    Object.keys(state.ppe).forEach(function(k){
+      if(!!snap.ppe[k] !== !!state.ppe[k]){ out.push("PPE " + (state.ppe[k] ? "added" : "removed") + ": " + k); }
+    });
+    var eq = listDiff(snap.equipment, state.equipment);
+    eq.added.forEach(function(x){ out.push("Equipment added: " + x); });
+    eq.removed.forEach(function(x){ out.push("Equipment removed: " + x); });
+    var pm = listDiff(snap.permits.map(permitLabel), state.permits.map(permitLabel));
+    pm.added.forEach(function(x){ out.push("Permit added: " + x); });
+    pm.removed.forEach(function(x){ out.push("Permit removed: " + x); });
+    return out;
+  }
+
+  // ---------- approve / raise a change ----------
+  function renderCardStatus(){
+    var pill = document.getElementById("cardStatusPill");
+    var note = document.getElementById("lockNote");
+    if(!state.cardApproved){
+      pill.textContent = "Needs review";
+      pill.className = "status-pill status-draft";
+      note.style.display = "none";
+    } else if(!state.amending){
+      pill.textContent = "Approved · locked";
+      pill.className = "status-pill status-approved";
+      note.className = "banner info";
+      note.style.display = "flex";
+      note.textContent = "Approved baseline — this card is locked. Any edit, new step, equipment or permit is made as a logged change.";
+    } else {
+      pill.textContent = "Amending";
+      pill.className = "status-pill status-draft";
+      note.className = "banner";
+      note.style.display = "flex";
+      note.textContent = "Amending — your edits are tracked as a change. When you're done, choose Finish & describe change.";
+    }
+    renderActions();
+  }
+
+  function renderActions(){
+    var holder = document.getElementById("actionCard");
+    if(!state.cardApproved){
+      holder.innerHTML =
+        '<div class="label">Approved by</div>' +
+        '<input type="text" id="approverName" class="sig-input" placeholder="Your full name" autocomplete="name" value="' + escapeHtml(state.approverDraft || recallWho().name) + '">' +
+        '<button class="btn btn-primary" id="approveBtn" style="width:100%;">Approve</button>' +
+        '<div class="status-line error" id="approveMsg"></div>' +
+        '<div class="fine-print">Approving saves the JHA, emails it to the project team and opens it for sign-on. After that it can only be changed as a logged change.</div>';
+      document.getElementById("approverName").addEventListener("input", function(){ state.approverDraft = this.value; });
+      document.getElementById("approveBtn").addEventListener("click", approveCard);
+    } else if(!state.amending){
+      holder.innerHTML =
+        '<button class="btn btn-primary" id="signOnCta" style="width:100%;margin-bottom:8px;">Sign on to this JHA</button>' +
+        '<button class="btn btn-accent" id="raiseChangeBtn" style="width:100%;">Raise a change</button>' +
+        '<div class="fine-print">Raising a change unlocks the card for tracked edits. Nothing on an approved card changes without being logged and emailed.</div>';
+      document.getElementById("signOnCta").addEventListener("click", function(){ goToTab("signon"); openSigModal(); });
+      document.getElementById("raiseChangeBtn").addEventListener("click", startAmending);
+    } else {
+      holder.innerHTML =
+        '<button class="btn btn-primary" id="finishChangeBtn" style="width:100%;margin-bottom:8px;">Finish &amp; describe change</button>' +
+        '<button class="btn btn-outline" id="cancelChangeBtn" style="width:100%;">Cancel changes</button>' +
+        '<div class="status-line" id="amendMsg"></div>';
+      document.getElementById("finishChangeBtn").addEventListener("click", finishAmending);
+      document.getElementById("cancelChangeBtn").addEventListener("click", cancelAmending);
+    }
+  }
+
+  function updateLockUI(){
+    var locked = isLocked();
+    document.getElementById("wmsSelect").disabled = locked;
+    document.getElementById("equipmentAddRow").style.display = locked ? "none" : "flex";
+    document.getElementById("permitAddRow").style.display = locked ? "none" : "flex";
+    var openBtn = document.getElementById("openStepCapture");
+    var panelOpen = document.getElementById("stepCapture").style.display === "block";
+    if(locked){
+      if(stepCaptureCtl){ stepCaptureCtl.close(); }
+      openBtn.style.display = "none";
+    } else if(!panelOpen){
+      openBtn.style.display = "inline-block";
+    }
+  }
+
+  function refreshCard(){
+    renderCardTitle();
+    renderAreas();
+    renderPPE();
+    renderSteps();
+    renderEquipment();
+    renderPermits();
+    renderCardStatus();
+    updateLockUI();
+    renderAmendBanner();
+    renderSignon();
+  }
+
+  async function approveCard(){
+    var msg = document.getElementById("approveMsg");
+    var nameEl = document.getElementById("approverName");
+    var name = cleanStr(nameEl ? nameEl.value : "");
+    msg.textContent = "";
+    if(state.steps.length === 0){ msg.textContent = "Record at least one step before approving."; return; }
+    if(!state.locations.length || !state.wms){ msg.textContent = "Choose at least one area and the SWMS before approving."; return; }
+    if(!name){ msg.textContent = "Enter your name to approve."; return; }
+    var btn = document.getElementById("approveBtn");
+    btn.disabled = true; btn.textContent = "Saving…";
+    var row = { jha_id: uuid(), seq: 1, rev: 1, title: state.cardTitle || "Untitled work activity", locations: state.locations.slice(), swms: state.wms,
+      card: cardPayload(), change: null, approved_by: name };
+    try{ await store.createVersion(row); }
+    catch(e){ btn.disabled = false; btn.textContent = "Approve"; msg.textContent = e.message; return; }
+    rememberWho(name);
+    row.created_at = new Date().toISOString();
+    state.cardApproved = true;
+    state.jhaId = row.jha_id; state.seq = 1; state.rev = 1; state.approvedBy = name; state.createdAt = row.created_at;
+    state.versions = [row]; state.signons = [];
+    state.changeLog = [entryFromVersion(row)];
+    refreshCard();
+    renderTimeline();
+    renderSignon();
+    goToTab("signon");
+    emailAndReport("approved", row);
+  }
+
+  function startAmending(){
+    state.amending = true;
+    state.snapshot = takeSnapshot();
+    refreshCard();
+  }
+
+  function cancelAmending(){
+    restoreSnapshot();
+    state.amending = false;
+    state.snapshot = null;
+    syncSelects();
+    refreshCard();
+  }
+
+  function finishAmending(){
+    if(diffAgainstSnapshot().length === 0){
+      document.getElementById("amendMsg").textContent = "No edits yet — make the change on the card first.";
+      return;
+    }
+    goToTab("changelog");
+    document.getElementById("openChangeCapture").click();
+  }
+
+  function renderAmendBanner(){
+    var el = document.getElementById("amendBanner");
+    if(!el){ return; }
+    if(!state.amending){ el.style.display = "none"; return; }
+    var diff = diffAgainstSnapshot();
+    el.style.display = "block";
+    el.innerHTML = diff.length
+      ? '<strong>Card edits pending (' + diff.length + '):</strong><ul class="edit-list">' + diff.map(function(l){ return '<li>' + escapeHtml(l) + '</li>'; }).join("") +
+        '</ul><div style="margin-top:6px;">Describe the change below to log it, or <button class="link-btn" id="amendCancelLink">cancel the changes</button>.</div>'
+      : '<strong>Amending the card</strong> — no edits yet. Make them on the Task Card tab, then choose Finish &amp; describe change. <button class="link-btn" id="amendCancelLink">Cancel</button>';
+    document.getElementById("amendCancelLink").addEventListener("click", cancelAmending);
+  }
+
+  // ---------- generic voice/type capture ----------
+  var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function makeCapture(cfg){
+    // cfg: prefix (id prefix), promptText, onAccept(fields)
+    var openBtn = document.getElementById(cfg.openId);
+    var panel = document.getElementById(cfg.panelId);
+    var micBtn = document.getElementById(cfg.micId);
+    var typeToggle = document.getElementById(cfg.typeToggleId);
+    var transcriptEl = document.getElementById(cfg.transcriptId);
+    var typeArea = document.getElementById(cfg.typeAreaId);
+    var structureBtn = document.getElementById(cfg.structureId);
+    var cancelBtn = document.getElementById(cfg.cancelId);
+    var statusLine = document.getElementById(cfg.statusId);
+    var draftHolder = document.getElementById(cfg.draftId);
+
+    var recognition = null;
+    var recording = false;
+    var manualStop = true;
+    var finalTranscript = "";
+    var usingType = false;
+
+    function currentText(){
+      return usingType ? typeArea.value.trim() : finalTranscript.trim();
+    }
+    function refreshStructureEnabled(){
+      structureBtn.disabled = currentText().length === 0;
+    }
+
+    openBtn.addEventListener("click", function(){
+      panel.style.display = "block";
+      openBtn.style.display = "none";
+    });
+    cancelBtn.addEventListener("click", function(){ closePanel(); });
+
+    function closePanel(){
+      panel.style.display = "none";
+      openBtn.style.display = "inline-block";
+      stopRecording();
+      finalTranscript = "";
+      transcriptEl.textContent = "Transcript will appear here as you speak…";
+      transcriptEl.classList.add("placeholder");
+      typeArea.value = "";
+      draftHolder.innerHTML = "";
+      statusLine.textContent = "";
+      statusLine.classList.remove("error");
+      refreshStructureEnabled();
+    }
+
+    typeToggle.addEventListener("click", function(){
+      usingType = !usingType;
+      typeArea.style.display = usingType ? "block" : "none";
+      typeToggle.textContent = usingType ? "or use voice instead" : "or type it instead";
+      if(usingType){ stopRecording(); }
+      refreshStructureEnabled();
+    });
+    typeArea.addEventListener("input", refreshStructureEnabled);
+
+    function stopRecording(){
+      manualStop = true;
+      if(recognition && recording){ try{ recognition.stop(); }catch(e){} }
+      recording = false;
+      micBtn.classList.remove("recording");
+      micBtn.textContent = "🎙 Start recording";
+    }
+
+    function attachRecognitionHandlers(rec){
+      rec.onresult = function(ev){
+        var interim = "";
+        for(var i = ev.resultIndex; i < ev.results.length; i++){
+          var res = ev.results[i];
+          if(res.isFinal){ finalTranscript += res[0].transcript + " "; }
+          else { interim += res[0].transcript; }
+        }
+        var shown = (finalTranscript + interim).trim();
+        transcriptEl.textContent = shown || "Listening…";
+        transcriptEl.classList.remove("placeholder");
+        refreshStructureEnabled();
+      };
+      rec.onerror = function(ev){
+        // "no-speech" and "network" are common during a long continuous capture and are
+        // recoverable — onend fires right after, and the auto-restart below picks it back up.
+        if(ev.error === "no-speech" || ev.error === "network" || ev.error === "aborted"){ return; }
+        if(ev.error === "not-allowed"){
+          statusLine.textContent = "Microphone is blocked in this preview (the artifact sandbox doesn't grant mic access, separate from your browser's own permission) — use \u201Cor type it instead\u201D below, or open the downloaded file directly in a browser tab to test real voice capture.";
+          statusLine.classList.add("error");
+          manualStop = true;
+          return;
+        }
+        statusLine.textContent = "Voice capture stopped (" + ev.error + "). Try again or type it instead.";
+        statusLine.classList.add("error");
+        manualStop = true;
+      };
+      rec.onend = function(){
+        recording = false;
+        if(manualStop){
+          micBtn.classList.remove("recording");
+          micBtn.textContent = "🎙 Start recording";
+          return;
+        }
+        // Chrome/Android periodically end a continuous session on their own (commonly
+        // around 30–60s) even though the person hasn't stopped talking. Restart quietly
+        // and keep appending to the same transcript, rather than dropping the capture.
+        setTimeout(function(){
+          if(manualStop) return;
+          try{ startRecognition(); }
+          catch(e){
+            micBtn.classList.remove("recording");
+            micBtn.textContent = "🎙 Start recording";
+          }
+        }, 250);
+      };
+    }
+
+    function startRecognition(){
+      recognition = new SpeechRecognitionCtor();
+      recognition.lang = "en-AU";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      attachRecognitionHandlers(recognition);
+      recognition.start();
+      recording = true;
+      micBtn.classList.add("recording");
+      micBtn.textContent = "⏹ Stop recording";
+    }
+
+    micBtn.addEventListener("click", function(){
+      if(!SpeechRecognitionCtor){
+        statusLine.textContent = "Voice capture isn't supported in this browser — use \u201Cor type it instead\u201D below.";
+        statusLine.classList.add("error");
+        return;
+      }
+      if(recording){ stopRecording(); return; }
+      manualStop = false;
+      statusLine.textContent = "";
+      statusLine.classList.remove("error");
+      startRecognition();
+    });
+
+    structureBtn.addEventListener("click", function(){
+      var text = currentText();
+      if(!text) return;
+      statusLine.textContent = "Structuring with AI…";
+      statusLine.classList.remove("error");
+      statusLine.classList.remove("warn");
+      structureBtn.disabled = true;
+      stopRecording();
+      cfg.structure(text).then(function(result){
+        statusLine.textContent = result.usedFallback
+          ? "Used the offline fallback — " + (result.reasons && result.reasons.length ? result.reasons.join("; ") : "the AI couldn't be reached") + ". Check the result carefully."
+          : (result.source === "service" ? "Structured by Claude (AI service)." : "Structured by Claude.");
+        statusLine.classList.toggle("warn", !!result.usedFallback);
+        cfg.renderDraft(draftHolder, result.data, function(accepted){
+          if(!accepted){ draftHolder.innerHTML = ""; refreshStructureEnabled(); return; }
+          var out = cfg.onAccept(accepted);
+          if(out && typeof out.then === "function"){
+            statusLine.textContent = "Saving…";
+            statusLine.classList.remove("warn");
+            statusLine.classList.remove("error");
+            out.then(function(){ closePanel(); }, function(err){
+              statusLine.textContent = (err && err.message) ? err.message : "Couldn't save — try again.";
+              statusLine.classList.add("error");
+            });
+          } else { closePanel(); }
+        });
+      }).catch(function(err){
+        statusLine.textContent = "Couldn't reach the structuring service — the transcript is safe, try again. (" + (err && err.message ? err.message : "error") + ")";
+        statusLine.classList.add("error");
+        refreshStructureEnabled();
+      });
+    });
+
+    return { close: closePanel };
+  }
+
+  // The live call only reaches api.anthropic.com when this page is running inside a
+  // Claude.ai artifact panel — that context is what authorises and proxies the request.
+  // Opened as a standalone file (double-clicked, hosted elsewhere, etc.) the fetch below
+  // fails, typically as "Failed to fetch" (CORS/no auth). structureWithFallback() catches
+  // that and drops to a local heuristic so the demo still runs end to end.
+  async function callClaude(promptPrefix, text){
+    var response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: promptPrefix + text }]
+      })
+    });
+    var data = await response.json();
+    var textBlocks = (data.content || []).filter(function(b){ return b.type === "text"; }).map(function(b){ return b.text; });
+    var raw = textBlocks.join("\n").replace(/```json|```/g, "").trim();
+    return JSON.parse(raw);
+  }
+
+  // Order: your AI service (works anywhere) -> Claude's built-in route (only inside the Claude
+  // preview) -> offline keyword fallback. The result says which one answered, and why any failed.
+  async function structureWithFallback(mode, promptPrefix, text, fallbackFn){
+    var reasons = [];
+    if(aiCfg.url){
+      try{ return { data: await callService(mode, text), usedFallback: false, source: "service" }; }
+      catch(e){ reasons.push("AI service: " + e.message); }
+    }
+    try{ return { data: await callClaude(promptPrefix, text), usedFallback: false, source: "direct" }; }
+    catch(e){ if(!aiCfg.url){ reasons.push("no AI service is set up (Settings → AI service)"); } }
+    return { data: fallbackFn(text), usedFallback: true, source: "offline", reasons: reasons };
+  }
+
+  function splitSentences(text){
+    return text.split(/(?<=[.!?])\s+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  }
+
+  var HAZARD_WORDS = ["hazard","risk","danger","vehicle","plant","crane","traffic","pedestrian","height","fall","falling","struck","confined","electrical","live","manual handling","noise","dust","excavation","trench","collapse","mobile plant","overhead"];
+  var CONTROL_WORDS = ["control","spotter","exclusion","barrier","ensure","harness","tag out","tagout","isolat","ppe","delineat","signage","procedure","permit","barricad","install","checked","inspect"];
+
+  var TOPICS = [
+    { hazard:"Working at heights / drop zones", h:["height","drop zone","fall"], c:["harness","fall arrest","fall restraint","restraint harness","exclusion","tether","lanyard","edge protection"] },
+    { hazard:"Overhead crane movements", h:["crane","overhead"], c:["awareness","spotter","exclusion","tag line","taglines","dogman","aware"] },
+    { hazard:"Dust exposure", h:["dust","silica"], c:["dust mask","mask","extraction","hvac","vacuum","respirator","water suppression"] },
+    { hazard:"Mobile plant / vehicles", h:["vehicle","mobile plant","traffic","truck","excavator"], c:["spotter","exclusion","delineat","barrier","signage","traffic control"] },
+    { hazard:"Noise", h:["noise","loud"], c:["hearing","ear muff","earmuff","ear plug","earplug"] },
+    { hazard:"Electrical", h:["electrical","live wire","live power","energised"], c:["isolat","tag out","tagout","lock out","lockout","rcd","test and tag"] }
+  ];
+
+  // Speech-to-text is full of filler ("our, our", trailing "and make sure we've got"), so
+  // clean each sentence a little before it is shown as a control.
+  function cleanClause(c){
+    c = c.replace(/\b(\w+),\s+\1\b/gi, "$1");
+    c = c.replace(/^(?:and|so|but|obviously|like)\s+/i, "");
+    c = c.replace(/^that'?s\s+(?:gonna|going to)\s+be\s+(?:our\s+)?/i, "");
+    c = c.replace(/^make sure\s+(?:that\s+)?(?:we(?:'ve| have)?\s+got|we(?:'re| are)|we)\s+(?:our\s+)?/i, "");
+    c = c.replace(/(?:\s+(?:and|our|on|the|a|to|make sure|we've|got))+$/i, "");
+    return c.trim();
+  }
+
+  function splitClauses(text){
+    return text.split(/[.;!?]+\s+/).map(cleanClause).filter(function(c){ return c.length > 3; });
+  }
+
+  function capitalise(str){ return str ? str.charAt(0).toUpperCase() + str.slice(1) : str; }
+
+  function fallbackStep(text){
+    var clauses = splitClauses(text);
+
+    var opMatch = text.match(/\b(?:task|job|work)\b[^.]{0,40}?\bis to\s+(?:go and\s+)?([^.]+)/i);
+    var op = opMatch ? capitalise(opMatch[1].trim()) : capitalise((splitSentences(text)[0] || "Untitled operation").split(" ").slice(0, 8).join(" "));
+    var locMatch = text.match(/\b(pier|span|abutment)\s+(\w+)/i);
+    var activity = op + (locMatch ? " — " + capitalise(locMatch[1]) + " " + capitalise(locMatch[2]) : "");
+
+    var rows = [];
+    TOPICS.forEach(function(t){
+      if(!matchesAny(text, t.h)) return;
+      var ctl = clauses.filter(function(c){ return matchesAny(c, t.c); });
+      var seen = {};
+      ctl = ctl.filter(function(c){ var k = c.toLowerCase(); if(seen[k]) return false; seen[k] = true; return true; });
+      rows.push({
+        hazard: t.hazard,
+        control: ctl.length ? capitalise(ctl.join("; ")) : "No control stated - confirm with supervisor"
+      });
+    });
+    if(rows.length === 0){
+      rows.push({ hazard:"Review transcript — no known hazard keyword matched", control:"No control stated - confirm with supervisor" });
+    }
+    return { activity: activity, steps: [ { step: op, rows: rows } ] };
+  }
+
+  // Accepts either the new {activity, steps:[{step, rows:[...]}]} shape or the old flat
+  // {step, hazard, control} shape, and always returns the new one.
+  function normaliseStepResult(d){
+    d = d || {};
+    var blankRow = function(){ return { hazard:"", control:"" }; };
+    var steps = [];
+    if(Array.isArray(d.steps)){
+      steps = d.steps.map(function(st){
+        var rows = (Array.isArray(st.rows) ? st.rows : []).map(function(r){
+          return { hazard: r.hazard || "", control: r.control || "" };
+        });
+        return { step: st.step || "", rows: rows };
+      });
+    } else if(d.hazard || d.control){
+      steps = [ { step: d.step || "", rows: [ { hazard: d.hazard || "", control: d.control || "" } ] } ];
+    }
+    if(!steps.length){ steps = [ { step:"", rows:[ blankRow() ] } ]; }
+    steps.forEach(function(st){ if(!st.rows.length){ st.rows.push(blankRow()); } });
+    return { activity: d.activity || "", steps: steps };
+  }
+
+  var EDIT_SPLIT = "\n\nCard edits made as part of this change:\n";
+  var MATERIAL_WORDS = ["new hazard","near miss","incident","injur","method","changed to","different plant","stop work","unexpected","collapse","struck","exclusion zone","reo","reinforcement","crane","live traffic"];
+
+  function fallbackChange(text){
+    var parts = text.split(EDIT_SPLIT);
+    var main = parts[0];
+    var edits = parts[1] ? parts[1].split("\n").map(function(l){ return l.replace(/^- /, ""); }) : [];
+    var editMaterial = edits.some(function(l){ return /^(Step \d+ added|Added |Removed |Step removed|Equipment |Permit |PPE |SWMS|Area )/i.test(l); });
+    var isMaterial = editMaterial || matchesAny(main, MATERIAL_WORDS);
+    var sentences = splitSentences(main);
+    var summary = sentences.length ? sentences.slice(0, 2).join(" ") : main;
+    if(summary.length > 160){ summary = summary.slice(0, 157) + "…"; }
+    return { summary: summary, classification: isMaterial ? "Material" : "Minor" };
+  }
+
+  function matchesAny(str, words){
+    var lower = str.toLowerCase();
+    return words.some(function(w){ return lower.indexOf(w) !== -1; });
+  }
+
+  // ---- Task Card step capture ----
+  var stepCaptureCtl = makeCapture({
+    openId:"openStepCapture", panelId:"stepCapture", micId:"stepMicBtn", typeToggleId:"stepTypeToggle",
+    transcriptId:"stepTranscript", typeAreaId:"stepTypeArea", structureId:"stepStructureBtn",
+    cancelId:"stepCancelBtn", statusId:"stepStatusLine", draftId:"stepDraftHolder",
+    structure: function(text){ return structureWithFallback("step", STEP_PROMPT, text, fallbackStep); },
+    renderDraft: function(holder, fields, done){
+      var draft = normaliseStepResult(fields);
+      var showActivity = state.steps.length === 0;
+
+      function paint(){
+        var html = '<div class="draft-card"><div class="draft-label">DRAFT — REVIEW BEFORE ADDING</div>';
+        if(showActivity){
+          html += '<div class="draft-field"><label>Work activity (card heading)</label><input data-k="activity" value="' + escapeHtml(draft.activity) + '"></div>';
+        }
+        draft.steps.forEach(function(st, si){
+          html += '<div class="draft-step">';
+          html += '<div class="draft-field"><label>Step ' + (si+1) + ' — work operation</label><input data-k="step" data-si="' + si + '" value="' + escapeHtml(st.step) + '"></div>';
+          st.rows.forEach(function(r, ri){
+            html += '<div class="pair-row">' +
+              '<div class="pair-cell"><label>Hazard</label><textarea rows="2" data-k="hazard" data-si="' + si + '" data-ri="' + ri + '">' + escapeHtml(r.hazard) + '</textarea></div>' +
+              '<div class="pair-cell"><label>Control for this hazard</label><textarea rows="2" data-k="control" data-si="' + si + '" data-ri="' + ri + '">' + escapeHtml(r.control) + '</textarea></div>' +
+              '<button class="remove-btn" data-rm-si="' + si + '" data-rm-ri="' + ri + '" aria-label="Remove this pair">×</button>' +
+            '</div>';
+          });
+          html += '<button class="link-btn" data-add-si="' + si + '">+ Add hazard / control pair</button>';
+          if(draft.steps.length > 1){ html += '  <button class="link-btn" data-rm-step="' + si + '">Remove this step</button>'; }
+          html += '</div>';
+        });
+        html += '<div style="display:flex;gap:10px;margin-top:12px;">' +
+          '<button class="btn btn-primary" id="dfAccept">Add to task card</button>' +
+          '<button class="btn btn-outline" id="dfDiscard">Discard</button>' +
+        '</div></div>';
+        holder.innerHTML = html;
+
+        holder.querySelectorAll("[data-k]").forEach(function(el){
+          el.addEventListener("input", function(){
+            var k = el.dataset.k;
+            if(k === "activity"){ draft.activity = el.value; }
+            else if(k === "step"){ draft.steps[+el.dataset.si].step = el.value; }
+            else { draft.steps[+el.dataset.si].rows[+el.dataset.ri][k] = el.value; }
+          });
+        });
+        holder.querySelectorAll("[data-add-si]").forEach(function(b){
+          b.addEventListener("click", function(){
+            draft.steps[+b.dataset.addSi].rows.push({ hazard:"", control:"" });
+            paint();
+          });
+        });
+        holder.querySelectorAll("[data-rm-ri]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var rows = draft.steps[+b.dataset.rmSi].rows;
+            rows.splice(+b.dataset.rmRi, 1);
+            if(!rows.length){ rows.push({ hazard:"", control:"" }); }
+            paint();
+          });
+        });
+        holder.querySelectorAll("[data-rm-step]").forEach(function(b){
+          b.addEventListener("click", function(){ draft.steps.splice(+b.dataset.rmStep, 1); paint(); });
+        });
+        document.getElementById("dfAccept").addEventListener("click", function(){
+          var cleaned = draft.steps.map(function(st){
+            return { step: st.step, rows: st.rows.filter(function(r){ return (r.hazard || "").trim() || (r.control || "").trim(); }) };
+          }).filter(function(st){ return st.rows.length; });
+          done({ activity: showActivity ? draft.activity : null, steps: cleaned });
+        });
+        document.getElementById("dfDiscard").addEventListener("click", function(){ done(null); });
+      }
+      paint();
+    },
+    onAccept: function(result){
+      if(result.activity && !state.cardTitle){
+        state.cardTitle = result.activity;
+        renderCardTitle();
+      }
+      result.steps.forEach(function(st){
+        st.id = uid();
+        st.rows.forEach(function(r){ r.id = uid(); });
+        state.steps.push(st);
+      });
+      renderSteps();
+      renderAmendBanner();
+    }
+  });
+
+  // ---- Change log capture ----
+  var CHANGE_COLORS = { "Baseline":"#4A6FA5", "Material":"#E8720C", "Minor":"#5B6472" };
+
+  var changeCaptureCtl = makeCapture({
+    openId:"openChangeCapture", panelId:"changeCapture", micId:"changeMicBtn", typeToggleId:"changeTypeToggle",
+    transcriptId:"changeTranscript", typeAreaId:"changeTypeArea", structureId:"changeStructureBtn",
+    cancelId:"changeCancelBtn", statusId:"changeStatusLine", draftId:"changeDraftHolder",
+    structure: function(text){
+      var edits = state.amending ? diffAgainstSnapshot() : [];
+      var full = edits.length ? text + EDIT_SPLIT + edits.map(function(l){ return "- " + l; }).join("\n") : text;
+      return structureWithFallback("change", CHANGE_PROMPT, full, fallbackChange);
+    },
+    renderDraft: function(holder, fields, done){
+      var cls = (fields.classification === "Material") ? "Material" : "Minor";
+      var pending = state.amending ? diffAgainstSnapshot() : [];
+      var editsHtml = pending.length
+        ? '<div class="draft-field"><label>Card edits included in this change</label><ul class="edit-list">' + pending.map(function(l){ return '<li>' + escapeHtml(l) + '</li>'; }).join("") + '</ul></div>'
+        : '';
+      holder.innerHTML =
+        '<div class="draft-card">' +
+          '<div class="draft-label">DRAFT — REVIEW BEFORE LOGGING</div>' +
+          editsHtml +
+          '<div class="draft-field"><label>Summary</label><textarea id="dfSummary">'+escapeHtml(fields.summary||"")+'</textarea></div>' +
+          '<div class="draft-field"><label>Raised by</label><input id="dfWho" placeholder="Your full name" autocomplete="name" value="'+escapeHtml(recallWho().name)+'"></div>' +
+          '<div class="draft-field"><label>Classification</label>' +
+            '<select id="dfClass" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;">' +
+              '<option value="Minor"'+(cls==="Minor"?" selected":"")+'>Minor — logged only</option>' +
+              '<option value="Material"'+(cls==="Material"?" selected":"")+'>Material — new controls, crew re-signs</option>' +
+            '</select>' +
+          '</div>' +
+          '<div style="display:flex;gap:10px;margin-top:6px;">' +
+            '<button class="btn btn-primary" id="dfAccept">Log this change</button>' +
+            '<button class="btn btn-outline" id="dfDiscard">Discard</button>' +
+          '</div>' +
+          '<div class="status-line error" id="dfMsg"></div>' +
+        '</div>';
+      document.getElementById("dfAccept").addEventListener("click", function(){
+        var who = cleanStr(document.getElementById("dfWho").value);
+        if(!who){ document.getElementById("dfMsg").textContent = "Enter your name so the change is attributed."; return; }
+        done({
+          summary: document.getElementById("dfSummary").value,
+          classification: document.getElementById("dfClass").value,
+          raisedBy: who
+        });
+      });
+      document.getElementById("dfDiscard").addEventListener("click", function(){ done(null); });
+    },
+    onAccept: async function(fields){
+      if(!state.jhaId){ throw new Error("Approve the JHA first."); }
+      var edits = state.amending ? diffAgainstSnapshot() : [];
+      var material = fields.classification === "Material";
+      var row = { jha_id: state.jhaId, seq: state.seq + 1, rev: material ? state.rev + 1 : state.rev,
+        title: state.cardTitle, locations: state.locations.slice(), swms: state.wms, card: cardPayload(),
+        change: { summary: fields.summary, classification: fields.classification, edits: edits, raised_by: fields.raisedBy },
+        approved_by: state.approvedBy };
+      try{ await store.createVersion(row); }
+      catch(e){
+        if(e.kind === "conflict"){
+          showNotice("Someone else changed this JHA while you were editing, so your change was not saved.", "error", "Load the latest", function(){ openJha(state.jhaId); });
+          throw new Error("Not saved — this JHA was changed by someone else. Load the latest version and redo the change.");
+        }
+        throw e;
+      }
+      rememberWho(fields.raisedBy);
+      row.created_at = new Date().toISOString();
+      state.seq = row.seq; state.rev = row.rev; state.versions.push(row);
+      state.changeLog.push(entryFromVersion(row));
+      if(state.amending){ state.amending = false; state.snapshot = null; }
+      renderTimeline();
+      renderSignon();
+      refreshCard();
+      emailAndReport("change", row);
+      return true;
+    }
+  });
+
+  function renderTimeline(){
+    var holder = document.getElementById("timelineHolder");
+    holder.innerHTML = "";
+    if(state.changeLog.length === 0){
+      holder.innerHTML = '<div class="empty-note">No history yet — approve the task card on the Task Card tab to establish a baseline.</div>';
+    }
+    state.changeLog.forEach(function(e){
+      var div = document.createElement("div");
+      div.className = "timeline-item";
+      div.innerHTML =
+        '<div class="timeline-time">'+escapeHtml(e.time)+'</div>' +
+        '<div class="timeline-body"><div class="summary">'+escapeHtml(e.summary)+'</div><div class="sub">'+escapeHtml(e.sub)+'</div>' +
+          (e.edits && e.edits.length ? '<ul class="edit-list">' + e.edits.map(function(l){ return '<li>' + escapeHtml(l) + '</li>'; }).join("") + '</ul>' : '') + '</div>' +
+        '<div class="tag-pill" style="background:'+e.color+';">'+escapeHtml(e.tag)+'</div>';
+      holder.appendChild(div);
+    });
+    var changeBtn = document.getElementById("openChangeCapture");
+    changeBtn.disabled = !state.jhaId;
+    changeBtn.title = !state.jhaId ? "Approve the task card first to establish a baseline" : "";
+  }
+
+  // ---------- sign-on ----------
+  var sigCtx = null, sigDrawing = false, sigHasStroke = false;
+
+  // most recent sign-on per person, oldest first
+  function latestSignons(){
+    var m = {}, order = [];
+    state.signons.forEach(function(x){
+      var k = cleanStr(x.name).toLowerCase();
+      if(!m[k]){ order.push(k); }
+      m[k] = x;
+    });
+    return order.map(function(k){ return m[k]; });
+  }
+
+  function renderSignon(){
+    var holder = document.getElementById("crewHolder");
+    var btn = document.getElementById("signOnBtn");
+    var banner = document.getElementById("resignBanner");
+    var msg = document.getElementById("signonMsg");
+    var count = document.getElementById("signCountLine");
+    holder.innerHTML = "";
+    if(!state.jhaId){
+      btn.style.display = "none"; banner.style.display = "none"; count.textContent = "";
+      msg.textContent = "Sign-on opens once this JHA has been approved.";
+      return;
+    }
+    btn.style.display = "inline-block";
+    btn.disabled = state.amending;
+    msg.textContent = state.amending
+      ? "Sign-on is paused while a change is being made to the card."
+      : "Everyone working on this task signs on each day, and again after any material change.";
+    var people = latestSignons(), current = 0, stale = 0;
+    people.forEach(function(x){
+      var ok = x.rev === state.rev;
+      if(ok){ current++; } else { stale++; }
+      var row = document.createElement("div");
+      row.className = "crew-row";
+      row.innerHTML = '<span class="crew-name">' + escapeHtml(x.name) + (x.company ? ' <span style="color:var(--muted);font-size:12px;">· ' + escapeHtml(x.company) + '</span>' : '') + '</span>' +
+        (ok ? '<span class="sign-status signed">Signed ' + escapeHtml(fmtClock(x.signed_at)) + '</span>'
+            : '<button class="btn btn-accent" data-resign="1">Re-sign</button>');
+      if(!ok){ row.querySelector("[data-resign]").addEventListener("click", function(){ openSigModal({ name: x.name, company: x.company }); }); }
+      holder.appendChild(row);
+    });
+    if(people.length === 0){ holder.innerHTML = '<div class="empty-note">Nobody has signed on today yet.</div>'; }
+    count.textContent = current + " signed on today at Rev " + state.rev + (stale ? " · " + stale + " need to re-sign" : "");
+    if(stale){
+      var lastMaterial = null;
+      state.changeLog.forEach(function(e){ if(e.tag === "Material"){ lastMaterial = e; } });
+      banner.style.display = "flex";
+      banner.textContent = "⚠ Re-sign required — " + stale + (stale === 1 ? " person signed" : " people signed") + " an earlier revision." + (lastMaterial ? " Latest change: “" + lastMaterial.summary + "”" : "");
+    } else { banner.style.display = "none"; }
+  }
+
+  function openSigModal(prefill){
+    var who = recallWho();
+    prefill = prefill || {};
+    document.getElementById("sigModalName").textContent = "Sign on — " + (state.cardTitle || "this JHA");
+    document.getElementById("sigModalText").textContent = "I confirm I have reviewed " + shortWms(state.wms) + " and understand the hazards and controls in this JHA (Rev " + state.rev + ").";
+    document.getElementById("sigName").value = cleanStr(prefill.name) || who.name;
+    document.getElementById("sigCompany").value = prefill.company != null ? cleanStr(prefill.company) : who.company;
+    document.getElementById("sigMsg").textContent = "";
+    document.getElementById("sigConfirm").disabled = false;
+    document.getElementById("sigBackdrop").classList.add("open");
+    clearSigPad();
+  }
+  function closeSigModal(){ document.getElementById("sigBackdrop").classList.remove("open"); }
+
+  document.getElementById("signOnBtn").addEventListener("click", function(){ openSigModal(); });
+  document.getElementById("sigClear").addEventListener("click", clearSigPad);
+  document.getElementById("sigCancel").addEventListener("click", closeSigModal);
+  document.getElementById("sigConfirm").addEventListener("click", async function(){
+    var msg = document.getElementById("sigMsg"), btn = this;
+    var name = cleanStr(document.getElementById("sigName").value);
+    var company = cleanStr(document.getElementById("sigCompany").value);
+    msg.textContent = "";
+    if(!state.jhaId){ msg.textContent = "This JHA hasn't been approved yet."; return; }
+    if(!name){ msg.textContent = "Enter your name."; return; }
+    if(!sigHasStroke){ msg.textContent = "Please sign in the box."; return; }
+    var dataUrl = "";
+    try{ dataUrl = document.getElementById("sigPad").toDataURL("image/png"); }catch(e){}
+    btn.disabled = true;
+    try{
+      await store.addSignon({ jha_id: state.jhaId, rev: state.rev, name: name, company: company || null, signature: dataUrl });
+    }catch(e){
+      btn.disabled = false; msg.textContent = e.message; return;
+    }
+    rememberWho(name, company);
+    try{ state.signons = await store.getSignons(state.jhaId); }
+    catch(e){ state.signons.push({ name: name, company: company || null, rev: state.rev, signed_at: new Date().toISOString() }); }
+    closeSigModal();
+    renderSignon();
+    goToTab("signon");
+  });
+
+  function clearSigPad(){
+    var canvas = document.getElementById("sigPad");
+    sigCtx = canvas.getContext ? canvas.getContext("2d") : null;
+    sigHasStroke = false;
+    if(!sigCtx){ return; }
+    sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+    sigCtx.strokeStyle = "#12233A";
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = "round";
+  }
+  (function setupSigPad(){
+    var canvas = document.getElementById("sigPad");
+    function pos(ev){
+      var rect = canvas.getBoundingClientRect();
+      var scaleX = canvas.width / (rect.width || canvas.width), scaleY = canvas.height / (rect.height || canvas.height);
+      var clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      var clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
+    function start(ev){ ev.preventDefault(); sigDrawing = true; sigHasStroke = true; if(!sigCtx){ return; } var p = pos(ev); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }
+    function move(ev){ if(!sigDrawing || !sigCtx){ return; } ev.preventDefault(); var p = pos(ev); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }
+    function end(){ sigDrawing = false; }
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove", move, { passive: false });
+    canvas.addEventListener("touchend", end);
+  })();
+
+  // ---------- render all ----------
+  function renderAll(){
+    if(stepCaptureCtl){ stepCaptureCtl.close(); }
+    if(changeCaptureCtl){ changeCaptureCtl.close(); }
+    populateConfigSelects();
+    renderSettings();
+    renderCardTitle();
+    renderTimeline();
+    renderSignon();
+    document.getElementById("equipmentAddSelect").value = "EWP (boom lift)";
+    refreshCard();
+  }
+
+  // ---------- start-up: a QR code opens the landing page (?loc=… filters it; ?jha=… opens one JHA) ----------
+  (function init(){
+    var params = new URLSearchParams(window.location.search);
+    LOC_FILTER = cleanStr(params.get("loc"));
+    var jid = cleanStr(params.get("jha"));
+    document.getElementById("modeTag").textContent = sharedMode ? "Prototype" : "Demo — this device only";
+    renderAll();
+    if(jid){ openJha(jid); } else { showLanding(); }
+  })();
+
+})();
+</script>
+</body>
+</html>
