@@ -23,7 +23,7 @@ window.JHA_CONFIG = {
   // Emails the project team on every approval and every logged change. See GO-LIVE.md, step 3.
   // Leave blank to switch email off (the page will warn that nobody was notified).
   email: {
-    serviceId: "service_6f97idb",  // e.g. "service_abc123"
+    serviceId: "service_br7pjds",  // e.g. "service_abc123"
     templateId: "template_e7l9kc3", // e.g. "template_xyz789"
     publicKey: "B4N8_nOaYVCZlTbdz"   // EmailJS account public key
   },
