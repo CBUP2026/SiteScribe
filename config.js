@@ -23,9 +23,9 @@ window.JHA_CONFIG = {
   // Emails the project team on every approval and every logged change. See GO-LIVE.md, step 3.
   // Leave blank to switch email off (the page will warn that nobody was notified).
   email: {
-    serviceId: "",  // e.g. "service_abc123"
-    templateId: "", // e.g. "template_xyz789"
-    publicKey: ""   // EmailJS account public key
+    serviceId: "service_6f97idb",  // e.g. "service_abc123"
+    templateId: "template_e7l9kc3", // e.g. "template_xyz789"
+    publicKey: "B4N8_nOaYVCZlTbdz"   // EmailJS account public key
   },
 
   // AI structuring of voice/typed briefings. See jha-structure/README.md.
@@ -37,7 +37,7 @@ window.JHA_CONFIG = {
 
   // The public address of this site, used for the "Open this JHA" link in emails and as the
   // default for the QR poster tool. Include the trailing slash.
-  appUrl: "",       // e.g. "https://yourname.github.io/jha/"
+  appUrl: "https://cbup2026.github.io/SiteScribe/",       // e.g. "https://yourname.github.io/jha/"
 
   // The dropdown lists. The areas below are the project's; the SWMS entries are placeholders - replace them.
   // A JHA can cover several areas and then shows up under each area's QR code.
