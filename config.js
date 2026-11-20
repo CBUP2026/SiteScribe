@@ -31,8 +31,8 @@ window.JHA_CONFIG = {
   // AI structuring of voice/typed briefings. See jha-structure/README.md.
   // Leave blank and the page falls back to a simple offline keyword matcher.
   ai: {
-    url: "",        // e.g. "https://abcdxyz.supabase.co/functions/v1/jha-structure"
-    key: ""         // the shared passphrase set as JHA_ACCESS_KEY on the function
+    url: "https://gkfvrzeclnoncdkhpxrz.supabase.co/functions/v1/jha-structure",        // e.g. "https://abcdxyz.supabase.co/functions/v1/jha-structure"
+    key: "centenarysafe2026"         // the shared passphrase set as JHA_ACCESS_KEY on the function
   },
 
   // The public address of this site, used for the "Open this JHA" link in emails and as the
