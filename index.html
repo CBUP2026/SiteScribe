@@ -36,6 +36,7 @@
   .status-pill{display:inline-block;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
   .status-draft{background:var(--orange-light);color:#8a4a0c;}
   .status-approved{background:var(--success-bg);color:var(--success-fg);}
+  .status-expired{background:#E4E7EC;color:#5B6472;}
   .wms-row{display:flex;align-items:center;gap:12px;background:var(--cardbg);border-radius:8px;padding:10px 14px;cursor:pointer;border:none;width:100%;text-align:left;}
   .wms-badge{background:var(--navy);color:#fff;font-weight:700;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .wms-row .wtext{flex:1;font-size:13px;}
@@ -331,7 +332,18 @@
 
   <!-- SETTINGS -->
   <section id="settings" class="panel">
-    <div class="banner info" style="margin-bottom:16px;">Admin settings for <strong>this device</strong>. The location and SWMS lists, the AI service and email are normally baked into the deployed site (<code>config.js</code>), so nobody has to set anything up. Anything changed here applies to this device only and overrides the deployed values — use <em>Reset to the deployed lists</em> to go back.</div>
+    <div id="adminDemo" class="banner info" style="display:none;">Admin settings are kept on the project server, so they are not available in demo mode.</div>
+
+    <div class="card" id="adminLock">
+      <h3>Admin settings</h3>
+      <div class="fine-print" style="margin:6px 0 12px;">The list of areas and the SWMS register are shared by every device, and only an administrator can change them. Enter the admin password to continue.</div>
+      <input type="password" id="adminPw" class="sig-input" placeholder="Admin password" autocomplete="current-password">
+      <button class="btn btn-primary" id="adminUnlockBtn">Unlock</button>
+      <div class="status-line error" id="adminLockMsg"></div>
+    </div>
+
+    <div id="adminEditor" style="display:none;">
+      <div class="banner info" style="margin-bottom:16px;">You are editing the lists <strong>every device</strong> uses. Nothing changes for anyone until you press <em>Save changes for all devices</em>.</div>
 
     <div class="card">
       <h3>Locations</h3>
@@ -369,34 +381,33 @@
     </div>
 
     <div class="card">
-      <h3>AI service</h3>
-      <div class="fine-print" style="margin:0 0 10px;">Lets voice capture and AI structuring work together in this page when it is opened <em>outside</em> Claude. Normally baked into the deployed site; set here only to override on this device. Leave blank inside the Claude preview. An access key entered here is stored on this device only and is never included in exports.</div>
-      <div class="label">Service URL</div>
-      <input type="text" id="aiUrl" placeholder="https://&lt;project&gt;.supabase.co/functions/v1/jha-structure" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;">
-      <div class="label" style="margin-top:10px;">Access key</div>
-      <input type="password" id="aiKey" placeholder="Shared passphrase for testers" autocomplete="off" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;">
-      <div style="display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-outline" id="aiTestBtn">Test connection</button>
+      <h3>Save</h3>
+      <div class="fine-print" id="adminDirtyNote" style="margin:0 0 8px;"></div>
+      <input type="text" id="adminWho" class="sig-input" placeholder="Your name (recorded with the change)" autocomplete="name">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="adminSaveBtn">Save changes for all devices</button>
+        <button class="btn btn-outline" id="adminDiscardBtn">Discard changes</button>
       </div>
+      <div class="status-line" id="adminSaveMsg"></div>
+    </div>
+
+    <div class="card">
+      <h3>AI service</h3>
+      <div class="fine-print" style="margin:0 0 8px;">Set in the site's <code>config.js</code>, so it is the same on every device. This only tests it.</div>
+      <button class="btn btn-outline" id="aiTestBtn">Test connection</button>
       <div class="status-line" id="aiStatus"></div>
     </div>
 
     <div class="card">
-      <h3>Back up and share</h3>
-      <div class="status-line" id="cfgStatus"></div>
-      <div class="fine-print" style="margin:6px 0 8px;">To give every tester the same lists: set them up once, copy or download this, then import it on each device (or send it to be built into the file).</div>
-      <textarea class="type-fallback" id="cfgExport" readonly style="min-height:110px;font-family:monospace;font-size:12px;"></textarea>
-      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
-        <button class="btn btn-outline" id="cfgCopyBtn">Copy</button>
-        <button class="btn btn-outline" id="cfgDownloadBtn">Download file</button>
-      </div>
-      <div class="label" style="margin-top:16px;">Import</div>
-      <textarea class="type-fallback" id="cfgImport" placeholder="Paste exported settings here"></textarea>
-      <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-primary" id="cfgImportBtn">Apply import</button>
-        <button class="btn btn-outline" id="cfgResetBtn">Reset to the deployed lists</button>
-      </div>
-      <div class="status-line" id="cfgMsg"></div>
+      <h3>Change the admin password</h3>
+      <input type="password" id="pwOld" class="sig-input" placeholder="Current password" autocomplete="current-password">
+      <input type="password" id="pwNew" class="sig-input" placeholder="New password (12 or more characters)" autocomplete="new-password">
+      <input type="password" id="pwNew2" class="sig-input" placeholder="New password again" autocomplete="new-password">
+      <button class="btn btn-outline" id="pwChangeBtn">Change password</button>
+      <div class="status-line" id="pwMsg"></div>
+    </div>
+
+    <button class="link-btn" id="adminLockBtn">Lock admin settings</button>
     </div>
   </section>
 
@@ -483,8 +494,10 @@ Input:
     renderCardTitle();
   }
   function goToTab(id){
+    if(id !== "settings" && admin.pw !== null){ lockAdmin(); }      // leaving the admin screen locks it
     document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("active", b.dataset.tab === id); });
     document.querySelectorAll(".panel").forEach(function(p){ p.classList.toggle("active", p.id === id); });
+    if(id === "settings"){ renderAdmin(); }
     updateChrome();
     renderAmendBanner();
   }
@@ -509,9 +522,10 @@ Input:
   var homeArmed = false;
   document.getElementById("homeBtn").addEventListener("click", function(){
     var btn = this;
-    var hasDraft = !state.jhaId && state.steps.length > 0 && currentPanel() !== "settings";
+    var inAdmin = currentPanel() === "settings";
+    var hasDraft = inAdmin ? admin.dirty : (!state.jhaId && state.steps.length > 0);
     if(hasDraft && !homeArmed){
-      homeArmed = true; btn.textContent = "Discard this draft?";
+      homeArmed = true; btn.textContent = inAdmin ? "Discard changes?" : "Discard this draft?";
       setTimeout(function(){ homeArmed = false; btn.textContent = "← All JHAs"; }, 4000);
       return;
     }
@@ -520,8 +534,6 @@ Input:
   });
 
   // ---------- configuration: locations and SWMS register ----------
-  var CONFIG_KEY = "jhaDigitalConfig.v1";
-  var storageOk = true;
   var PLACEHOLDER_CONFIG = {
     locations: ["Southern Pavement Box", "Northern Pavement Box", "Abutment A", "Pier 1", "Pier 2", "Pier 3", "Pier 4", "Pier 5", "Pier 6", "Abutment B", "Span 1", "Span 2", "Span 3", "Span 4", "Span 5", "Span 6", "Span 7", "Sinnamon Rd Intersection", "Spinkbrae Civil Area"],
     swms: [
@@ -553,31 +565,9 @@ Input:
     return { locations: locs, swms: sw };
   }
 
-  function loadConfig(){
-    try{
-      var raw = window.localStorage.getItem(CONFIG_KEY);
-      if(raw){
-        var c = normaliseConfig(JSON.parse(raw));
-        if(c){ return c; }
-      }
-    }catch(e){ storageOk = false; }
-    return cloneCfg(DEFAULT_CONFIG);
-  }
-  var config = loadConfig();
-
-  function saveConfig(){
-    try{ window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }
-    catch(e){ storageOk = false; }
-    updateConfigStatus();
-  }
-  function updateConfigStatus(){
-    var el = document.getElementById("cfgStatus");
-    if(!el){ return; }
-    el.className = "status-line" + (storageOk ? "" : " warn");
-    el.textContent = storageOk
-      ? "Saved in this browser on this device."
-      : "This preview can't save between visits — your changes last until you reload. Use Download / Copy below to keep them.";
-  }
+  // The lists in force. They start as the ones baked into config.js and are replaced by the server's
+  // shared copy as soon as it has been read (see loadServerSettings). Nothing is stored on the device.
+  var config = cloneCfg(DEFAULT_CONFIG);
 
   function swmsLabel(r){
     return r.ref + (r.ref && r.title ? " · " : "") + r.title + (r.rev ? " · Rev " + r.rev : "");
@@ -642,32 +632,87 @@ Input:
     fillSelect(document.getElementById("wmsSelect"), "— Select SWMS —", live, ["Other / not yet issued"], state.wms);
   }
 
-  function commitConfig(rerender){
-    saveConfig();
-    populateConfigSelects();
-    if(rerender === false){ document.getElementById("cfgExport").value = JSON.stringify(config, null, 2); }
-    else { renderSettings(); }
+  // ---------- shared settings: ONE copy on the server, read by every device ----------
+  var settingsSeq = 0;                        // 0 = still on the lists baked into config.js
+  async function loadServerSettings(){
+    if(!sharedMode){ return false; }
+    try{
+      var rows = await sb("app_settings_versions?select=seq,settings&order=seq.desc&limit=1");
+      var c = rows && rows.length ? normaliseConfig(rows[0].settings) : null;
+      if(c && c.locations.length){ config = c; settingsSeq = rows[0].seq; }
+      populateConfigSelects();
+      return true;
+    }catch(e){ return false; }               // offline, or no admin save yet: carry on with the baked-in lists
   }
 
-  function renderSettings(){
-    var locHolder = document.getElementById("locList");
-    locHolder.innerHTML = config.locations.length ? "" : '<div class="empty-note">No locations yet — add one below.</div>';
-    config.locations.forEach(function(l, i){
+  // ---------- admin: locked behind a password that the SERVER checks ----------
+  // The password is held in memory only while this screen is open: never stored, and cleared when you leave.
+  var admin = { pw: null, draft: null, dirty: false };
+  var ADMIN_MSG = {
+    wrong: "That password isn't right.",
+    locked: "Too many wrong attempts. Admin settings are locked for 15 minutes.",
+    not_set: "No admin password has been set yet. See the go-live guide (Step 1) for how to set one.",
+    invalid: "The server refused those settings as invalid.",
+    weak: "Use a longer password (at least 12 characters)."
+  };
+  function byId(id){ return document.getElementById(id); }
+
+  function lockAdmin(){
+    admin.pw = null; admin.draft = null; admin.dirty = false;
+    ["adminPw", "pwOld", "pwNew", "pwNew2"].forEach(function(id){ byId(id).value = ""; });
+    ["adminLockMsg", "adminSaveMsg", "pwMsg"].forEach(function(id){ byId(id).textContent = ""; });
+    renderAdmin();
+  }
+  function markDirty(){ admin.dirty = true; updateDirtyNote(); }
+  function updateDirtyNote(){
+    byId("adminDirtyNote").textContent = admin.dirty ? "You have unsaved changes — they are not live until you save." : "No unsaved changes.";
+  }
+  function renderAdmin(){
+    var demo = !sharedMode, unlocked = admin.pw !== null;
+    byId("adminDemo").style.display = demo ? "block" : "none";
+    byId("adminLock").style.display = (!demo && !unlocked) ? "block" : "none";
+    byId("adminEditor").style.display = (!demo && unlocked) ? "block" : "none";
+    if(unlocked){ renderAdminLists(); updateDirtyNote(); updateAiStatus(); }
+  }
+
+  async function adminUnlock(){
+    var msg = byId("adminLockMsg"), pw = byId("adminPw").value, btn = byId("adminUnlockBtn");
+    msg.textContent = "";
+    if(!pw){ msg.textContent = "Enter the admin password."; return; }
+    btn.disabled = true;
+    var st;
+    try{ st = await sbRpc("admin_check", { pw: pw }); }
+    catch(e){ btn.disabled = false; msg.textContent = e.message; return; }
+    btn.disabled = false;
+    byId("adminPw").value = "";
+    if(st === "ok"){
+      await loadServerSettings();             // start from whatever is live right now
+      admin.pw = pw; admin.draft = cloneCfg(config); admin.dirty = false;
+      byId("adminWho").value = recallWho().name;
+      renderAdmin();
+      return;
+    }
+    msg.textContent = ADMIN_MSG[st] || "Couldn't check the password. Try again.";
+  }
+
+  function renderAdminLists(){
+    var d = admin.draft;
+    var locHolder = byId("locList");
+    locHolder.innerHTML = d.locations.length ? "" : '<div class="empty-note">No areas yet — add one below.</div>';
+    d.locations.forEach(function(l, i){
       var row = document.createElement("div");
       row.className = "cfg-row";
       row.innerHTML = '<span>' + escapeHtml(l) + '</span><button class="remove-btn" data-rmloc="' + i + '" aria-label="Remove">×</button>';
       locHolder.appendChild(row);
     });
     locHolder.querySelectorAll("[data-rmloc]").forEach(function(b){
-      b.addEventListener("click", function(){ config.locations.splice(+b.dataset.rmloc, 1); commitConfig(); });
+      b.addEventListener("click", function(){ d.locations.splice(+b.dataset.rmloc, 1); markDirty(); renderAdminLists(); });
     });
 
-    var body = document.getElementById("swmsBody");
+    var body = byId("swmsBody");
     body.innerHTML = "";
-    if(!config.swms.length){
-      body.innerHTML = '<tr><td colspan="5"><div class="empty-note">No SWMS yet — add one below.</div></td></tr>';
-    }
-    config.swms.forEach(function(r, i){
+    if(!d.swms.length){ body.innerHTML = '<tr><td colspan="5"><div class="empty-note">No SWMS yet — add one below.</div></td></tr>'; }
+    d.swms.forEach(function(r, i){
       var tr = document.createElement("tr");
       if(r.status === "Superseded"){ tr.className = "superseded"; }
       tr.innerHTML =
@@ -679,42 +724,26 @@ Input:
       body.appendChild(tr);
     });
     body.querySelectorAll("input[data-sw]").forEach(function(el){
-      el.addEventListener("input", function(){ config.swms[+el.dataset.i][el.dataset.sw] = el.value; commitConfig(false); });
+      el.addEventListener("input", function(){ d.swms[+el.dataset.i][el.dataset.sw] = el.value; markDirty(); });
     });
     body.querySelectorAll("select[data-sw]").forEach(function(el){
-      el.addEventListener("change", function(){ config.swms[+el.dataset.i].status = el.value; commitConfig(); });
+      el.addEventListener("change", function(){ d.swms[+el.dataset.i].status = el.value; markDirty(); renderAdminLists(); });
     });
     body.querySelectorAll("[data-rmsw]").forEach(function(b){
-      b.addEventListener("click", function(){ config.swms.splice(+b.dataset.rmsw, 1); commitConfig(); });
+      b.addEventListener("click", function(){ d.swms.splice(+b.dataset.rmsw, 1); markDirty(); renderAdminLists(); });
     });
-
-    document.getElementById("cfgExport").value = JSON.stringify(config, null, 2);
-    updateConfigStatus();
   }
 
   function addLocations(list){
-    var have = {}; config.locations.forEach(function(l){ have[l.toLowerCase()] = true; });
+    var have = {}; admin.draft.locations.forEach(function(l){ have[l.toLowerCase()] = true; });
     var added = 0;
     list.forEach(function(l){
       l = cleanStr(l);
-      if(l && !have[l.toLowerCase()]){ have[l.toLowerCase()] = true; config.locations.push(l); added++; }
+      if(l && !have[l.toLowerCase()]){ have[l.toLowerCase()] = true; admin.draft.locations.push(l); added++; }
     });
+    if(added){ markDirty(); renderAdminLists(); }
     return added;
   }
-  document.getElementById("locAddBtn").addEventListener("click", function(){
-    var inp = document.getElementById("locNew");
-    if(addLocations([inp.value])){ inp.value = ""; commitConfig(); }
-  });
-  document.getElementById("locNew").addEventListener("keydown", function(ev){
-    if(ev.key === "Enter"){ document.getElementById("locAddBtn").click(); }
-  });
-  document.getElementById("locBulkBtn").addEventListener("click", function(){
-    var ta = document.getElementById("locBulk");
-    addLocations(ta.value.split(/\r?\n/));
-    ta.value = "";
-    commitConfig();
-  });
-
   function parseSwmsLines(text){
     return text.split(/\r?\n/).map(function(line){
       line = line.trim();
@@ -726,90 +755,104 @@ Input:
       return { ref: ref, title: title, rev: rev, status: "Current" };
     }).filter(Boolean);
   }
-  document.getElementById("swmsAddBtn").addEventListener("click", function(){
-    var msg = document.getElementById("swmsMsg");
-    var r = { ref: cleanStr(document.getElementById("swmsRef").value), title: cleanStr(document.getElementById("swmsTitle").value),
-              rev: cleanStr(document.getElementById("swmsRev").value), status: "Current" };
+
+  byId("adminUnlockBtn").addEventListener("click", adminUnlock);
+  byId("adminPw").addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ adminUnlock(); } });
+  byId("adminLockBtn").addEventListener("click", lockAdmin);
+  byId("locAddBtn").addEventListener("click", function(){
+    if(!admin.draft){ return; }
+    var inp = byId("locNew");
+    if(addLocations([inp.value])){ inp.value = ""; }
+  });
+  byId("locNew").addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ byId("locAddBtn").click(); } });
+  byId("locBulkBtn").addEventListener("click", function(){
+    if(!admin.draft){ return; }
+    var ta = byId("locBulk");
+    addLocations(ta.value.split(/\r?\n/));
+    ta.value = "";
+  });
+  byId("swmsAddBtn").addEventListener("click", function(){
+    if(!admin.draft){ return; }
+    var msg = byId("swmsMsg");
+    var r = { ref: cleanStr(byId("swmsRef").value), title: cleanStr(byId("swmsTitle").value), rev: cleanStr(byId("swmsRev").value), status: "Current" };
     msg.textContent = "";
     if(!r.ref && !r.title){ msg.textContent = "Enter a ref or a title."; return; }
-    config.swms.push(r);
-    ["swmsRef", "swmsTitle", "swmsRev"].forEach(function(id){ document.getElementById(id).value = ""; });
-    commitConfig();
+    admin.draft.swms.push(r);
+    ["swmsRef", "swmsTitle", "swmsRev"].forEach(function(id){ byId(id).value = ""; });
+    markDirty(); renderAdminLists();
   });
-  document.getElementById("swmsBulkBtn").addEventListener("click", function(){
-    var ta = document.getElementById("swmsBulk");
-    parseSwmsLines(ta.value).forEach(function(r){ config.swms.push(r); });
+  byId("swmsBulkBtn").addEventListener("click", function(){
+    if(!admin.draft){ return; }
+    var ta = byId("swmsBulk");
+    var rows = parseSwmsLines(ta.value);
+    rows.forEach(function(r){ admin.draft.swms.push(r); });
     ta.value = "";
-    commitConfig();
+    if(rows.length){ markDirty(); renderAdminLists(); }
   });
 
-  document.getElementById("cfgCopyBtn").addEventListener("click", function(){
-    var ta = document.getElementById("cfgExport"), msg = document.getElementById("cfgMsg");
-    var done = function(){ msg.className = "status-line"; msg.textContent = "Copied."; };
-    var fallback = function(){ ta.select(); try{ document.execCommand("copy"); done(); }catch(e){ msg.textContent = "Select the text above and copy it manually."; } };
-    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done, fallback); }
-    else { fallback(); }
+  byId("adminDiscardBtn").addEventListener("click", function(){
+    if(!admin.draft){ return; }
+    admin.draft = cloneCfg(config); admin.dirty = false;
+    byId("adminSaveMsg").textContent = "";
+    renderAdminLists(); updateDirtyNote();
   });
-  document.getElementById("cfgDownloadBtn").addEventListener("click", function(){
-    var msg = document.getElementById("cfgMsg");
-    try{
-      var blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "jha-settings.json";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }catch(e){ msg.className = "status-line error"; msg.textContent = "Download isn't available here — use Copy instead."; }
-  });
-  document.getElementById("cfgImportBtn").addEventListener("click", function(){
-    var msg = document.getElementById("cfgMsg");
-    var c = null;
-    try{ c = normaliseConfig(JSON.parse(document.getElementById("cfgImport").value)); }catch(e){ c = null; }
-    if(!c){ msg.className = "status-line error"; msg.textContent = "That doesn't look like exported settings — nothing was changed."; return; }
-    config = c;
-    document.getElementById("cfgImport").value = "";
-    commitConfig();
-    msg.className = "status-line"; msg.textContent = "Imported " + c.locations.length + " locations and " + c.swms.length + " SWMS.";
-  });
-  var resetArmed = false;
-  document.getElementById("cfgResetBtn").addEventListener("click", function(){
-    var btn = this, msg = document.getElementById("cfgMsg");
-    if(!resetArmed){
-      resetArmed = true; btn.textContent = "Click again to confirm";
-      setTimeout(function(){ resetArmed = false; btn.textContent = "Reset to the deployed lists"; }, 4000);
+
+  byId("adminSaveBtn").addEventListener("click", async function(){
+    var msg = byId("adminSaveMsg"), who = cleanStr(byId("adminWho").value), btn = this;
+    msg.className = "status-line error"; msg.textContent = "";
+    if(!admin.pw || !admin.draft){ return; }
+    var clean = normaliseConfig(admin.draft);
+    if(!who){ msg.textContent = "Enter your name — it is recorded with the change."; return; }
+    if(!clean || !clean.locations.length){ msg.textContent = "Keep at least one area in the list."; return; }
+    btn.disabled = true;
+    var r;
+    try{ r = await sbRpc("admin_save_settings", { pw: admin.pw, new_settings: { locations: clean.locations, swms: clean.swms }, who: who }); }
+    catch(e){ btn.disabled = false; msg.textContent = e.message; return; }
+    btn.disabled = false;
+    if(r && r.status === "ok"){
+      config = clean; settingsSeq = r.seq;
+      admin.draft = cloneCfg(config); admin.dirty = false;
+      rememberWho(who);
+      populateConfigSelects(); renderAdminLists(); updateDirtyNote();
+      msg.className = "status-line";
+      msg.textContent = "Saved. Every device will use these lists from its next page load or list refresh.";
       return;
     }
-    resetArmed = false; btn.textContent = "Reset to the deployed lists";
-    config = cloneCfg(DEFAULT_CONFIG);
-    commitConfig();
-    msg.className = "status-line"; msg.textContent = "Reset to the deployed lists.";
+    msg.textContent = ADMIN_MSG[r && r.status] || "The server didn't accept the save. Try again.";
+  });
+
+  byId("pwChangeBtn").addEventListener("click", async function(){
+    var msg = byId("pwMsg"), btn = this;
+    var oldPw = byId("pwOld").value, nw = byId("pwNew").value, nw2 = byId("pwNew2").value;
+    msg.className = "status-line error"; msg.textContent = "";
+    if(!admin.pw){ return; }
+    if(!oldPw || !nw){ msg.textContent = "Fill in the current and the new password."; return; }
+    if(nw !== nw2){ msg.textContent = "The two new passwords don't match."; return; }
+    if(nw.length < 12){ msg.textContent = ADMIN_MSG.weak; return; }
+    btn.disabled = true;
+    var st;
+    try{ st = await sbRpc("admin_change_password", { old_pw: oldPw, new_pw: nw }); }
+    catch(e){ btn.disabled = false; msg.textContent = e.message; return; }
+    btn.disabled = false;
+    if(st === "ok"){
+      admin.pw = nw;
+      ["pwOld", "pwNew", "pwNew2"].forEach(function(id){ byId(id).value = ""; });
+      msg.className = "status-line"; msg.textContent = "Password changed. Use the new one from now on.";
+      return;
+    }
+    msg.textContent = ADMIN_MSG[st] || "Couldn't change the password. Try again.";
   });
 
   // ---------- AI service: lets the page run outside Claude ----------
-  var AI_KEY = "jhaDigitalAi.v1";
-  var DEFAULT_AI_ENDPOINT = cleanStr(BK.ai.url);
-  var aiCfg = loadAi();
-
-  function loadAi(){
-    var c = { url: DEFAULT_AI_ENDPOINT, key: cleanStr(BK.ai.key) };
-    try{
-      var raw = window.localStorage.getItem(AI_KEY);
-      if(raw){
-        var o = JSON.parse(raw);
-        if(o && typeof o === "object"){ if("url" in o){ c.url = cleanStr(o.url); } c.key = cleanStr(o.key) || c.key; }
-      }
-    }catch(e){ storageOk = false; }
-    return c;
-  }
-  function saveAi(){
-    try{ window.localStorage.setItem(AI_KEY, JSON.stringify(aiCfg)); }catch(e){ storageOk = false; }
-    updateAiStatus();
-  }
+  // Set in config.js, so it is identical on every device (not editable in the page).
+  var aiCfg = { url: cleanStr(BK.ai.url), key: cleanStr(BK.ai.key) };
   function updateAiStatus(note, isError){
     var el = document.getElementById("aiStatus");
     if(!el){ return; }
     el.className = "status-line" + (isError ? " error" : "");
     el.textContent = note || (aiCfg.url
-      ? (aiCfg.key ? "Set. Press Test connection to check it." : "URL set — now enter the access key.")
-      : "Not set. Inside Claude, structuring uses Claude's built-in route; anywhere else it uses the offline fallback.");
+      ? "Set in config.js. Press Test connection to check it."
+      : "Not set in config.js. Inside Claude, structuring uses Claude's built-in route; anywhere else it uses the offline fallback.");
   }
 
   // One request to the service. Returns the parsed body, or throws an Error whose message
@@ -826,7 +869,7 @@ Input:
       });
       var body = null;
       try{ body = await res.json(); }catch(e){ body = null; }
-      if(res.status === 401){ throw new Error("the access key was rejected — check it in Settings"); }
+      if(res.status === 401){ throw new Error("the access key was rejected — check it in config.js"); }
       if(!res.ok || !body || !body.ok){ throw new Error((body && body.error) || ("the service returned " + res.status)); }
       return body;
     }catch(e){
@@ -839,16 +882,8 @@ Input:
   }
   async function callService(mode, text){ return (await postService({ mode: mode, text: text })).data; }
 
-  document.getElementById("aiUrl").value = aiCfg.url;
-  document.getElementById("aiKey").value = aiCfg.key;
-  document.getElementById("aiUrl").addEventListener("input", function(){
-    aiCfg.url = cleanStr(this.value);
-    saveAi();
-    if(aiCfg.url && !isHttpUrl(aiCfg.url)){ updateAiStatus("The URL must start with https://", true); }
-  });
-  document.getElementById("aiKey").addEventListener("input", function(){ aiCfg.key = cleanStr(this.value); saveAi(); });
   document.getElementById("aiTestBtn").addEventListener("click", async function(){
-    if(!isHttpUrl(aiCfg.url)){ updateAiStatus("Enter the service URL (starting https://) first.", true); return; }
+    if(!isHttpUrl(aiCfg.url)){ updateAiStatus("The AI service isn't set in config.js yet.", true); return; }
     updateAiStatus("Testing…");
     try{
       var b = await postService({ mode: "ping" });
@@ -858,7 +893,6 @@ Input:
       updateAiStatus("Failed — " + e.message + ".", true);
     }
   });
-  updateAiStatus();
 
   // ---------- small helpers: time, ids, who is using this device ----------
   function fmtClock(iso){
@@ -871,7 +905,27 @@ Input:
     return d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" }) + ", " + fmtClock(iso);
   }
   function startOfToday(){ var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
-  function daysAgo(n){ return new Date(Date.now() - n * 86400000); }
+  // Validity: a JHA is good for the day it was approved and expires at local midnight, EXCEPT that one
+  // approved at or after 6pm also covers the whole of the following day, so a night shift that crosses
+  // midnight is never cut off. (Example: approved Monday 7pm -> valid until 12am Wednesday.)
+  var EVENING_FROM_HOUR = 18;
+  // The list query reaches back one extra day, because last evening's JHA may still be valid now.
+  function windowStart(){ var d = startOfToday(); d.setDate(d.getDate() - DAYS_ACTIVE); return d; }
+  function expiryOf(createdIso){
+    var d = new Date(createdIso), evening = d.getHours() >= EVENING_FROM_HOUR;
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + DAYS_ACTIVE + (evening ? 1 : 0));
+    return d;
+  }
+  function lastValidDay(createdIso){ return new Date(expiryOf(createdIso).getTime() - 1); }
+  function validityLabel(createdIso){
+    var last = lastValidDay(createdIso);
+    if(last.toDateString() === new Date().toDateString()){ return "valid today only"; }
+    return "valid until the end of " + last.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+  }
+  // Checked at the moment of every action, not just when the page loads, so a tablet left open
+  // past midnight can't carry on signing on to yesterday's JHA.
+  function jhaExpired(){ return !!state.jhaId && Date.now() >= expiryOf(state.createdAt).getTime(); }
   function enc(v){ return encodeURIComponent(v); }
   function uuid(){
     try{ if(window.crypto && window.crypto.randomUUID){ return window.crypto.randomUUID(); } }catch(e){}
@@ -894,7 +948,7 @@ Input:
   // ---------- storage: shared server (Supabase) or in-memory (demo / Claude preview) ----------
   var SB = { url: cleanStr(BK.supabase.url).replace(/\/+$/, ""), key: cleanStr(BK.supabase.anonKey) };
   var sharedMode = !!(SB.url && SB.key);
-  var DAYS_ACTIVE = 7;                      // a JHA is rewritten every 7 days
+  var DAYS_ACTIVE = 1;                      // a JHA is valid for the day it was approved only
   var mem = { versions: [], signons: [] };
 
   function StoreError(kind, message){ var e = new Error(message); e.kind = kind; return e; }
@@ -921,6 +975,23 @@ Input:
     return res.json();
   }
 
+  // Calls a database function (used for the admin password checks). Returns the parsed reply.
+  async function sbRpc(name, args){
+    var res;
+    try{
+      res = await fetch(SB.url + "/rest/v1/rpc/" + name, {
+        method: "POST",
+        headers: { "apikey": SB.key, "Authorization": "Bearer " + SB.key, "Content-Type": "application/json" },
+        body: JSON.stringify(args)
+      });
+    }catch(e){
+      throw StoreError("offline", "Can't reach the project server — check your connection and try again.");
+    }
+    if(res.status === 401 || res.status === 403){ throw StoreError("denied", "The project server refused the request — the site's database key or permissions need checking."); }
+    if(!res.ok){ throw StoreError("server", "The project server returned an error (" + res.status + ")."); }
+    return res.json();
+  }
+
   // Turns raw version rows + today's sign-ons into one summary per active JHA.
   function summariseActive(rows, signons){
     var byId = {};
@@ -930,7 +1001,7 @@ Input:
       var vs = byId[id].sort(function(a, b){ return a.seq - b.seq; });
       var base = vs[0];
       if(base.seq !== 1){ return; }                                   // baseline is outside the window -> expired
-      var expires = new Date(new Date(base.created_at).getTime() + DAYS_ACTIVE * 86400000);
+      var expires = expiryOf(base.created_at);
       if(expires.getTime() <= Date.now()){ return; }
       var latest = vs[vs.length - 1];
       var latestByName = {};
@@ -947,17 +1018,17 @@ Input:
 
   var sharedStore = {
     async listActive(){
-      var rows = await sb("jha_versions?select=jha_id,seq,rev,title,locations,swms,approved_by,created_at&created_at=gte." + enc(daysAgo(DAYS_ACTIVE).toISOString()) + "&order=created_at.desc&limit=1000");
+      var rows = await sb("jha_versions?select=jha_id,seq,rev,title,locations,swms,approved_by,created_at&created_at=gte." + enc(windowStart().toISOString()) + "&order=created_at.desc&limit=1000");
       var ids = []; rows.forEach(function(r){ if(ids.indexOf(r.jha_id) === -1){ ids.push(r.jha_id); } });
       var sig = ids.length
-        ? await sb("signons?select=jha_id,rev,name,signed_at&signed_at=gte." + enc(startOfToday().toISOString()) + "&jha_id=in.(" + ids.join(",") + ")&order=signed_at.asc&limit=2000")
+        ? await sb("signons?select=jha_id,rev,name,signed_at&jha_id=in.(" + ids.join(",") + ")&order=signed_at.asc&limit=2000")
         : [];
       return summariseActive(rows, sig);
     },
     getJha: function(id){ return sb("jha_versions?jha_id=eq." + enc(id) + "&select=*&order=seq.asc"); },
     getSignons: function(id){
       // never selects the signature image: the public key can list who signed, not read signatures
-      return sb("signons?jha_id=eq." + enc(id) + "&select=name,company,rev,signed_at&signed_at=gte." + enc(startOfToday().toISOString()) + "&order=signed_at.asc&limit=500");
+      return sb("signons?jha_id=eq." + enc(id) + "&select=name,company,rev,signed_at&order=signed_at.asc&limit=500");
     },
     createVersion: function(row){ return sb("jha_versions", { method: "POST", headers: { "Prefer": "return=minimal" }, body: row }); },
     addSignon: function(row){ return sb("signons", { method: "POST", headers: { "Prefer": "return=minimal" }, body: row }); }
@@ -965,17 +1036,15 @@ Input:
 
   var memStore = {
     async listActive(){
-      var cutoff = daysAgo(DAYS_ACTIVE).getTime(), today = startOfToday().getTime();
+      var cutoff = windowStart().getTime();
       var rows = mem.versions.filter(function(v){ return new Date(v.created_at).getTime() >= cutoff; });
-      var sig = mem.signons.filter(function(x){ return new Date(x.signed_at).getTime() >= today; });
-      return summariseActive(JSON.parse(JSON.stringify(rows)), sig);
+      return summariseActive(JSON.parse(JSON.stringify(rows)), JSON.parse(JSON.stringify(mem.signons)));
     },
     async getJha(id){
       return JSON.parse(JSON.stringify(mem.versions.filter(function(v){ return v.jha_id === id; }).sort(function(a, b){ return a.seq - b.seq; })));
     },
     async getSignons(id){
-      var today = startOfToday().getTime();
-      return mem.signons.filter(function(x){ return x.jha_id === id && new Date(x.signed_at).getTime() >= today; })
+      return mem.signons.filter(function(x){ return x.jha_id === id; })
         .map(function(x){ return { name: x.name, company: x.company, rev: x.rev, signed_at: x.signed_at }; });
     },
     async createVersion(row){
@@ -1085,6 +1154,7 @@ Input:
     var list = document.getElementById("landingList");
     list.innerHTML = '<div class="empty-note">Loading JHAs…</div>';
     try{
+      await loadServerSettings();                 // pick up any change an administrator has published
       landingData = await store.listActive();
       renderLanding();
     }catch(e){
@@ -1131,12 +1201,12 @@ Input:
       b.className = "jha-item";
       b.dataset.id = j.id;
       var hoursLeft = (new Date(j.expiresAt).getTime() - Date.now()) / 3600000;
-      var valid = "Valid until " + new Date(j.expiresAt).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
-      var signedTxt = j.signedNow + " signed on today" + (j.needResign ? ' · <span class="warn">' + j.needResign + ' to re-sign</span>' : "");
+      var valid = capitalise(validityLabel(j.createdAt));
+      var signedTxt = j.signedNow + " signed on" + (j.needResign ? ' · <span class="warn">' + j.needResign + ' to re-sign</span>' : "");
       b.innerHTML =
         '<div class="jha-item-top"><strong>' + escapeHtml(j.title) + '</strong><span class="rev-pill' + (j.rev > 1 ? " hot" : "") + '">Rev ' + j.rev + '</span></div>' +
         '<div class="jha-item-sub">' + escapeHtml((j.locations || []).join(' · ')) + ' · ' + escapeHtml(shortWms(j.swms)) + '<br>Approved by ' + escapeHtml(j.approvedBy) + ' · ' + escapeHtml(fmtWhen(j.createdAt)) + '</div>' +
-        '<div class="jha-item-foot"><span class="' + (j.signedNow ? "ok" : "") + '">' + signedTxt + '</span><span class="' + (hoursLeft < 24 ? "soon" : "") + '">' + escapeHtml(valid) + '</span></div>';
+        '<div class="jha-item-foot"><span class="' + (j.signedNow ? "ok" : "") + '">' + signedTxt + '</span><span class="' + (hoursLeft < 2 ? "soon" : "") + '">' + escapeHtml(valid) + '</span></div>';
       b.addEventListener("click", function(){ openJha(j.id); });
       list.appendChild(b);
     });
@@ -1211,7 +1281,7 @@ Input:
     var note = document.getElementById("cardTitleNote");
     if(state.jhaId){
       note.style.display = "block";
-      note.textContent = "Rev " + state.rev + " · approved by " + state.approvedBy + " · " + fmtWhen(state.createdAt);
+      note.textContent = "Rev " + state.rev + " · approved by " + state.approvedBy + " · " + fmtWhen(state.createdAt) + (jhaExpired() ? " · expired" : " · " + validityLabel(state.createdAt));
     } else {
       note.style.display = state.cardTitle ? "none" : "block";
       note.textContent = "Record the first step below to set this from the briefing";
@@ -1487,6 +1557,12 @@ Input:
       pill.textContent = "Needs review";
       pill.className = "status-pill status-draft";
       note.style.display = "none";
+    } else if(!state.amending && jhaExpired()){
+      pill.textContent = "Expired";
+      pill.className = "status-pill status-expired";
+      note.className = "banner err";
+      note.style.display = "flex";
+      note.textContent = "This JHA expired at the end of " + lastValidDay(state.createdAt).toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" }) + ". It is shown for reference only — sign-on and changes are closed. Create a new JHA for today's work.";
     } else if(!state.amending){
       pill.textContent = "Approved · locked";
       pill.className = "status-pill status-approved";
@@ -1514,6 +1590,11 @@ Input:
         '<div class="fine-print">Approving saves the JHA, emails it to the project team and opens it for sign-on. After that it can only be changed as a logged change.</div>';
       document.getElementById("approverName").addEventListener("input", function(){ state.approverDraft = this.value; });
       document.getElementById("approveBtn").addEventListener("click", approveCard);
+    } else if(!state.amending && jhaExpired()){
+      holder.innerHTML =
+        '<button class="btn btn-primary" id="newFromExpired" style="width:100%;">Create a new JHA</button>' +
+        '<div class="fine-print">A JHA is valid for one day only. This one is kept as a record; start a new one for today\'s work.</div>';
+      document.getElementById("newFromExpired").addEventListener("click", startNewJha);
     } else if(!state.amending){
       holder.innerHTML =
         '<button class="btn btn-primary" id="signOnCta" style="width:100%;margin-bottom:8px;">Sign on to this JHA</button>' +
@@ -1587,6 +1668,7 @@ Input:
   }
 
   function startAmending(){
+    if(jhaExpired()){ refreshCard(); return; }
     state.amending = true;
     state.snapshot = takeSnapshot();
     refreshCard();
@@ -2064,6 +2146,7 @@ Input:
     },
     onAccept: async function(fields){
       if(!state.jhaId){ throw new Error("Approve the JHA first."); }
+      if(jhaExpired()){ throw new Error("This JHA has expired, so changes are closed. Create a new JHA for today's work."); }
       var edits = state.amending ? diffAgainstSnapshot() : [];
       var material = fields.classification === "Material";
       var row = { jha_id: state.jhaId, seq: state.seq + 1, rev: material ? state.rev + 1 : state.rev,
@@ -2108,8 +2191,8 @@ Input:
       holder.appendChild(div);
     });
     var changeBtn = document.getElementById("openChangeCapture");
-    changeBtn.disabled = !state.jhaId;
-    changeBtn.title = !state.jhaId ? "Approve the task card first to establish a baseline" : "";
+    changeBtn.disabled = !state.jhaId || jhaExpired();
+    changeBtn.title = !state.jhaId ? "Approve the task card first to establish a baseline" : (jhaExpired() ? "This JHA has expired" : "");
   }
 
   // ---------- sign-on ----------
@@ -2138,11 +2221,16 @@ Input:
       msg.textContent = "Sign-on opens once this JHA has been approved.";
       return;
     }
+    if(jhaExpired()){
+      btn.style.display = "none"; banner.style.display = "none"; count.textContent = "";
+      msg.textContent = "This JHA has expired, so sign-on is closed. Earlier sign-ons are kept in the project record.";
+      return;
+    }
     btn.style.display = "inline-block";
     btn.disabled = state.amending;
     msg.textContent = state.amending
       ? "Sign-on is paused while a change is being made to the card."
-      : "Everyone working on this task signs on each day, and again after any material change.";
+      : "Everyone working under this JHA signs on before they start, and again after any material change.";
     var people = latestSignons(), current = 0, stale = 0;
     people.forEach(function(x){
       var ok = x.rev === state.rev;
@@ -2155,8 +2243,8 @@ Input:
       if(!ok){ row.querySelector("[data-resign]").addEventListener("click", function(){ openSigModal({ name: x.name, company: x.company }); }); }
       holder.appendChild(row);
     });
-    if(people.length === 0){ holder.innerHTML = '<div class="empty-note">Nobody has signed on today yet.</div>'; }
-    count.textContent = current + " signed on today at Rev " + state.rev + (stale ? " · " + stale + " need to re-sign" : "");
+    if(people.length === 0){ holder.innerHTML = '<div class="empty-note">Nobody has signed on yet.</div>'; }
+    count.textContent = current + " signed on at Rev " + state.rev + (stale ? " · " + stale + " need to re-sign" : "");
     if(stale){
       var lastMaterial = null;
       state.changeLog.forEach(function(e){ if(e.tag === "Material"){ lastMaterial = e; } });
@@ -2166,6 +2254,7 @@ Input:
   }
 
   function openSigModal(prefill){
+    if(jhaExpired()){ return; }
     var who = recallWho();
     prefill = prefill || {};
     document.getElementById("sigModalName").textContent = "Sign on — " + (state.cardTitle || "this JHA");
@@ -2188,6 +2277,7 @@ Input:
     var company = cleanStr(document.getElementById("sigCompany").value);
     msg.textContent = "";
     if(!state.jhaId){ msg.textContent = "This JHA hasn't been approved yet."; return; }
+    if(jhaExpired()){ msg.textContent = "This JHA has expired, so sign-on is closed."; return; }
     if(!name){ msg.textContent = "Enter your name."; return; }
     if(!sigHasStroke){ msg.textContent = "Please sign in the box."; return; }
     var dataUrl = "";
@@ -2241,7 +2331,7 @@ Input:
     if(stepCaptureCtl){ stepCaptureCtl.close(); }
     if(changeCaptureCtl){ changeCaptureCtl.close(); }
     populateConfigSelects();
-    renderSettings();
+    renderAdmin();
     renderCardTitle();
     renderTimeline();
     renderSignon();
@@ -2250,12 +2340,13 @@ Input:
   }
 
   // ---------- start-up: a QR code opens the landing page (?loc=… filters it; ?jha=… opens one JHA) ----------
-  (function init(){
+  (async function init(){
     var params = new URLSearchParams(window.location.search);
     LOC_FILTER = cleanStr(params.get("loc"));
     var jid = cleanStr(params.get("jha"));
     document.getElementById("modeTag").textContent = sharedMode ? "Prototype" : "Demo — this device only";
     renderAll();
+    await loadServerSettings();
     if(jid){ openJha(jid); } else { showLanding(); }
   })();
 
